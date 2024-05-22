@@ -1,0 +1,65 @@
+﻿@model List<EmployeeManagement.Models.CompanyModel>
+
+@{
+    ViewData["Title"] = "Company List";
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+<h2>Company List</h2>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Company Name</th>
+            <th>Contact Person</th>
+            <th>Gender</th>
+            <th>Selected Areas</th>
+            <th>Email</th>
+            <th>Phone Number</th>
+            <th>Address</th>
+            <th>Country</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var company in Model)
+        {
+            <tr>
+                <td>@company.Id</td>
+                <td>@company.CompanyName</td>
+                <td>@company.ContactPerson</td>
+                <td>@company.Gender</td>
+                <td>
+                    @if (company.SelectedAreas != null && company.SelectedAreas.Any())
+                    {
+                        <ul>
+                            @foreach (var areaId in company.SelectedAreas)
+                            {
+                                <li>@areaId</li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <span>No areas selected</span>
+                    }
+                </td>
+                <td>@company.Email</td>
+                <td>@company.PhoneNumber</td>
+                <td>@company.Address</td>
+                <td>@company.Country</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@company.Id" class="btn btn-primary">Edit</a>
+                    <!-- Add other actions if needed -->
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

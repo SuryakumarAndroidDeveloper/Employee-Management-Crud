@@ -58,6 +58,23 @@ namespace EmployeeManagement.Controllers
             ViewBag.areaData = areaData;
             return View("Index", model);
         }
+
+        [HttpGet]
+        public IActionResult ListCompany()
+        {
+            List<CompanyModel> companies = _companyDAL.GetAllCompanyWithAreas();
+            return View(companies);
+           
+        }
+
+        public IActionResult EditCompany()
+        {
+            return View();
+        }
+
+
+
+
     }
 }
 

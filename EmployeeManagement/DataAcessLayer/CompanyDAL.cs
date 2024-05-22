@@ -133,8 +133,74 @@ namespace EmployeeManagement.DataAcessLayer
 
             }
             }
+
+
+        public List<CompanyModel> GetAllCompanyWithAreas()
+        {
+            List<CompanyModel> companies = new List<CompanyModel>();
+
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+                {
+                    using (SqlCommand cmd = new SqlCommand("GetAllCompanyWithAreas", connection))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        connection.Open();
+                        SqlDataReader reader = cmd.ExecuteReader();
+
+                        while (reader.Read())
+                        {
+                            int companyId = Convert.ToInt32(reader["CompanyID"]);
+                            // Check if the company already exists in the list
+                            CompanyModel company = companies.FirstOrDefault(c => c.Id == companyId);
+
+                            // If the company doesn't exist, create a new one and add it to the list
+                            if (company == null)
+                            {
+                                company = new CompanyModel
+                                {
+                                    Id = companyId,
+                                    CompanyName = reader["CompanyName"].ToString(),
+                                    ContactPerson = reader["ContactPerson"].ToString(),
+                                    Gender = reader["Gender"].ToString(),
+                                    Email = reader["Email"].ToString(),
+                                    PhoneNumber = reader["PhoneNumber"].ToString(),
+                                    Address = reader["Address"].ToString(),
+                                    Country = reader["Country"].ToString(),
+                                    SelectedAreas = new List<int>()
+                                };
+                                companies.Add(company);
+                            }
+
+                            // Add the area to the company's selected areas list
+                            int areaId = Convert.ToInt32(reader["Area_Id"]);
+                            if (areaId != 0) // Check if the areaId is not null
+                            {
+                                company.SelectedAreas.Add(areaId);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+
+            return companies;
         }
+
+
+
+
+
+
+
+
+
     }
+}
 
 
 
