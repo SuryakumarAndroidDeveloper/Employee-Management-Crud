@@ -2,6 +2,7 @@
 using EmployeeManagement.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.ComponentModel.Design;
 using System.Data;
 using System.Data.SqlClient;
 
@@ -189,6 +190,16 @@ namespace EmployeeManagement.Controllers
             }
         }
 
+        [HttpGet]
+        public IActionResult ViewEmployee(int id)
+        {
+            var employee = _employeDAL.GetEmpById(id);
+            if (employee == null)
+            {
+                return NotFound("Employee not found");
+            }
+            return View(employee);
+        }
 
 
 

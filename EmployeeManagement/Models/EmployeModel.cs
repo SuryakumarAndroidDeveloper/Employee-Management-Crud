@@ -8,7 +8,8 @@ namespace EmployeeManagement.Models
    
     [Key]
         public int Id { get; set; }
-       
+  
+
         [Required(ErrorMessage = "Company Name is Required.")]
         public String CompanyName { get; set; }
 

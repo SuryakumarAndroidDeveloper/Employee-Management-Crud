@@ -302,6 +302,46 @@ namespace EmployeeManagement.DataAcessLayer
             return employeModel;
         }
 
+        public EmployeModel GetEmpById(int id)
+        {
+            EmployeModel employeModel = null;
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+                {
+                    using (SqlCommand cmd = new SqlCommand("GetEmployeeById_New", connection))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("@Id", id);
+                        connection.Open();
+                        SqlDataReader reader = cmd.ExecuteReader();
+
+                        if (reader.Read())
+                        {
+                            employeModel = new EmployeModel
+                            {
+                                Id = Convert.ToInt32(reader["Id"]),
+                                //CompanyID = Convert.ToInt32(reader["CompanyID"]),
+                                CompanyName = reader["CompanyName"].ToString(),
+                                Name = reader["Name"].ToString(),
+                                Email = reader["Email"].ToString(),
+                                Mobile = reader["Mobile"].ToString(),
+                                Address = reader["Address"].ToString(),
+                                City = reader["City"].ToString(),
+                                Pincode = Convert.ToInt32(reader["Pincode"]),
+                            };
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+            return employeModel;
+        }
+
+
 
         public bool UpdateEmployee(EmployeModel employee)
         {
