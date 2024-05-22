@@ -1,0 +1,171 @@
+﻿@model EmployeeManagement.Models.EmployeModel
+
+@{
+    ViewData["Title"] = "Edit Employee";
+}
+
+<div class="company">
+    <h3 style="text-align:center">Edit Employee Form</h3>
+    <div class="companybody">
+        <div id="container">
+            <form id="editEmployeeForm" class="form" >
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="Id" name="Id" asp-for="Id" />
+
+                <div class="input-box">
+                    <label asp-for="CompanyName"></label>
+                    <select id="CompanyName" name="CompanyName" class="form-control" asp-items="@ViewBag.companyData"></select>
+                    <span asp-validation-for="CompanyName" class="text-danger"></span>
+                </div>
+
+                <div class="input-box">
+                    <label asp-for="Name"></label>
+                    <input id="Name" name="Name" asp-for="Name" class="form-control" />
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+
+                <div class="input-box">
+                    <label asp-for="Email"></label>
+                    <input id="Email" name="Email" asp-for="Email" class="form-control" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <div class="input-box">
+                    <label asp-for="Mobile"></label>
+                    <input id="Mobile" name="Mobile" asp-for="Mobile" class="form-control" />
+                    <span asp-validation-for="Mobile" class="text-danger"></span>
+                </div>
+
+                <div class="input-box">
+                    <label asp-for="Address"></label>
+                    <input id="Address" name="Address" asp-for="Address" class="form-control" />
+                    <span asp-validation-for="Address" class="text-danger"></span>
+                </div>
+
+                <div class="input-box">
+                    <label asp-for="City"></label>
+                    <input id="City" name="City" asp-for="City" class="form-control" />
+                    <span asp-validation-for="City" class="text-danger"></span>
+                </div>
+
+                <div class="input-box">
+                    <label asp-for="Pincode"></label>
+                    <input id="Pincode" name="Pincode" asp-for="Pincode" class="form-control" />
+                    <span asp-validation-for="Pincode" class="text-danger"></span>
+                </div>
+
+                <div class="input-box">
+                    <input type="button" id="submitButton" value="Submit" class="btn btn-primary" />
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<div>
+    <a asp-action="ListEmployee">Back to List</a>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            var Id = $('#Id').val();
+            console.log(Id);
+            // Fetch employee data using AJAX
+            $.ajax({
+                url: '/Jquery/ModifyEmployeeData',
+                type: 'GET',
+                data: { id: Id },
+                success: function (data) {
+                    //console.log(data);
+                    //console.log(data.companyName);
+                    //  strictly compares the value and the datatype
+                    if (typeof data === 'object') {  
+                    // Populate form fields with the received data
+                    $('#CompanyName').val(data.companyName);
+                    $('#Name').val(data.name);
+                    $('#Email').val(data.email);
+                    $('#Mobile').val(data.mobile);
+                    $('#Address').val(data.address);
+                    $('#City').val(data.city);
+                    $('#Pincode').val(data.pincode);
+                    } else {
+                        console.error('Invalid data format received:', data);
+                        alert('Invalid data format received. Please check the console for details.');
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error(xhr.responseText);
+                    alert('Failed to fetch employee data.');
+                }
+            });
+
+            $('#submitButton').click(function () {
+                var isValid = true;
+                var employeeData = {
+                    
+                    Id: $('#Id').val(),
+                    CompanyName: $('#CompanyName').val(),
+                    Name: $('#Name').val(),
+                    Email: $('#Email').val(),
+                    Mobile: $('#Mobile').val(),
+                    Address: $('#Address').val(),
+                    City: $('#City').val(),
+                    Pincode: $('#Pincode').val()
+                };
+                // Validation logic
+                $('.error-message').remove(); // Clear previous error messages
+
+              
+                if (!employeeData.Name) {
+                    isValid = false;
+                    $('#Name').after('<span class="error-message" style="color:red;">Name is required</span>');
+                }
+                if (!employeeData.Email ) {
+                    isValid = false;
+                    $('#Email').after('<span class="error-message" style="color:red;">Valid Email is required</span>');
+                }
+                if (!employeeData.Mobile ) {
+                    isValid = false;
+                    $('#Mobile').after('<span class="error-message" style="color:red;">Valid Mobile number is required</span>');
+                }
+                if (!employeeData.Address) {
+                    isValid = false;
+                    $('#Address').after('<span class="error-message" style="color:red;">Address is required</span>');
+                }
+                if (!employeeData.City) {
+                    isValid = false;
+                    $('#City').after('<span class="error-message" style="color:red;">City is required</span>');
+                }
+                if (!employeeData.Pincode ) {
+                    isValid = false;
+                    $('#Pincode').after('<span class="error-message" style="color:red;">Valid Pincode is required</span>');
+                }
+
+                // If form is valid, make the AJAX request
+                if (isValid) {
+                    $.ajax({
+                        type: 'POST',
+                        url: '@Url.Action("Edit", "Jquery")',
+                        data: employeeData,
+                        success: function (response) {
+                            if (response.success) {
+                                alert('Employee updated successfully!');
+                                window.location.href = '@Url.Action("ListEmployee", "Jquery")';
+                            } else {
+                                alert('Failed to update employee.');
+                            }
+                        },
+                        error: function () {
+                            alert('Error in updating employee.');
+                        }
+                    });
+                }
+            });
+        });
+         
+    </script>
+}

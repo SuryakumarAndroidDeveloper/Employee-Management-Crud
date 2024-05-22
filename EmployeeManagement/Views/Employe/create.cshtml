@@ -1,0 +1,73 @@
+﻿@model EmployeeManagement.Models.EmployeModel
+@{
+    ViewData["Title"] = "Employee Page";
+}
+<div class="company">
+    <h3 style="text-align:center">Employee Form</h3>
+    <div class="companybody">
+        <div id="container">
+            <form class="form" asp-action="Insert" method="post">
+                @Html.AntiForgeryToken() 
+
+                <div class="input-box">
+                    <label asp-for="CompanyName"></label>
+                    <select asp-for="CompanyName" class="form-control" asp-items="@ViewBag.companyData">
+                        <option value="">Select Company</option>
+                    </select>
+                    <span asp-validation-for="CompanyName" class="text-danger"></span>
+                </div>
+
+                <div class="input-box">
+                    <label asp-for="Name"></label>
+                    <input asp-for="Name" class="form-control" />
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+
+                <div class="input-box">
+                    <label asp-for="Email"></label>
+                    <input asp-for="Email" class="form-control" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <div class="input-box">
+                    <label asp-for="Mobile"></label>
+                    <input asp-for="Mobile" class="form-control" />
+                    <span asp-validation-for="Mobile" class="text-danger"></span>
+                </div>
+
+                <div class="input-box">
+                    <label asp-for="Address"></label>
+                    <input asp-for="Address" class="form-control" />
+                    <span asp-validation-for="Address" class="text-danger"></span>
+                </div>
+
+                <div class="input-box">
+                    <label asp-for="City"></label>
+                    <input asp-for="City" class="form-control" />
+                    <span asp-validation-for="City" class="text-danger"></span>
+                </div>
+
+                <div class="input-box">
+                    <label asp-for="Pincode"></label>
+                    <input asp-for="Pincode" class="form-control" />
+                    <span asp-validation-for="Pincode" class="text-danger"></span>
+                </div>
+
+                <div class="input-box">
+                    <input type="submit" value="Submit" class="btn btn-primary" />
+                </div>
+            </form>
+
+
+
+<div>
+    <a asp-action="ListEmployee" style="font-size:20px">Back to List</a>
+</div>
+
+</div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,45 @@
+﻿@model StuDin.Models.CompanyModel
+@{
+    ViewData["Title"] = "Company Page";
+}
+<div class="company">
+    <h3 style="text-align:center">Company Form</h3>
+    <div class="companybody">
+<div id="container">
+    <form class="form" action="Company" method="post" autocomplete="off">
+            <div class="input-box">
+        <label>Company Name :</label>
+        <input type="text" id="cName" name="cName"/></div>
+     
+            <div class="input-box">
+        <label>Contact Person :</label>
+                    <input type="text" id="cPerson" name="cPerson" />
+                </div>
+        
+            <div class="input-box">
+        <label>Email :</label>
+                    <input type="email" id="email" name="email" />
+                </div>
+        
+            <div class="input-box">
+        <label>PhoneNumber :</label>
+                    <input type="number" id="pNumber" name="pNumber" />
+                </div>
+        
+            <div class="input-box">
+        <label>Address :</label>
+                    <input type="text" id="address" name="address" />
+                </div>
+        
+            <div class="select-box">
+        <label>Country :</label> &nbsp;&nbsp;&nbsp;
+        <select name="Country" id="Country">
+            <option>Select</option>
+                        <option value="India">India</option>
+        </select></div>
+       
+        <button>Add Company</button>
+    </form>
+    </div>
+    </div>
+</div>

@@ -1,0 +1,137 @@
+﻿@model EmployeeManagement.Models.EmployeModel
+@{
+    ViewData["Title"] = "Employee Page";
+}
+<div class="company">
+    <h3 style="text-align:center">Employee Form Using Jquery</h3>
+    <div class="companybody">
+        <div id="container">
+            <form class="form" id="editEmployeeForm">
+                @Html.AntiForgeryToken()
+
+                <div class="input-box">
+                    <label asp-for="CompanyName"></label>
+                    <select asp-for="CompanyName" id="CompanyName" name="CompanyName" class="form-control" asp-items="@ViewBag.companyData">
+                        <option>Select CompanyName</option>
+                    </select>
+                    <span asp-validation-for="CompanyName" class="text-danger"></span>
+                </div>
+
+                <div class="input-box">
+                    <label asp-for="Name"></label>
+                    <input asp-for="Name" id="Name" name="Name" class="form-control" />
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+
+                <div class="input-box">
+                    <label asp-for="Email"></label>
+                    <input asp-for="Email" id="Email" name="Email" class="form-control" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <div class="input-box">
+                    <label asp-for="Mobile"></label>
+                    <input asp-for="Mobile" id="Mobile" name="Mobile" class="form-control" />
+                    <span asp-validation-for="Mobile" class="text-danger"></span>
+                </div>
+
+                <div class="input-box">
+                    <label asp-for="Address"></label>
+                    <input asp-for="Address" id="Address" name="Address" class="form-control" />
+                    <span asp-validation-for="Address" class="text-danger"></span>
+                </div>
+
+                <div class="input-box">
+                    <label asp-for="City"></label>
+                    <input asp-for="City" id="City" name="City" class="form-control" />
+                    <span asp-validation-for="City" class="text-danger"></span>
+                </div>
+
+                <div class="input-box">
+                    <label asp-for="Pincode"></label>
+                    <input asp-for="Pincode" id="Pincode" name="Pincode" class="form-control" />
+                    <span asp-validation-for="Pincode" class="text-danger"></span>
+                </div>
+
+                <div class="input-box">
+                    <input type="button" id="submitButton" value="Submit" class="btn btn-primary" />
+                </div>
+            </form>
+
+
+
+            <div>
+                <a asp-action="ListEmployee" style="font-size:20px">Back to List</a>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+
+
+            $('#submitButton').click(function () {
+                var isValid = true;
+                var employeeData = {
+                    Id: $('#Id').val(),
+                    CompanyName: $('#CompanyName').val(),
+                    Name: $('#Name').val(),
+                    Email: $('#Email').val(),
+                    Mobile: $('#Mobile').val(),
+                    Address: $('#Address').val(),
+                    City: $('#City').val(),
+                    Pincode: $('#Pincode').val()
+                };
+                $('.error-message').remove(); // Clear previous error messages
+                if (!employeeData.CompanyName) {
+                    isValid = false;
+                    $('#CompanyName').after('<span class="error-message" style="color:red;">CompanyName is required</span>');
+                }
+
+                if (!employeeData.Name) {
+                    isValid = false;
+                    $('#Name').after('<span class="error-message" style="color:red;">Name is required</span>');
+                }
+                if (!employeeData.Email) {
+                    isValid = false;
+                    $('#Email').after('<span class="error-message" style="color:red;">Valid Email is required</span>');
+                }
+                if (!employeeData.Mobile) {
+                    isValid = false;
+                    $('#Mobile').after('<span class="error-message" style="color:red;">Valid Mobile number is required</span>');
+                }
+                if (!employeeData.Address) {
+                    isValid = false;
+                    $('#Address').after('<span class="error-message" style="color:red;">Address is required</span>');
+                }
+                if (!employeeData.City) {
+                    isValid = false;
+                    $('#City').after('<span class="error-message" style="color:red;">City is required</span>');
+                }
+                if (!employeeData.Pincode) {
+                    isValid = false;
+                    $('#Pincode').after('<span class="error-message" style="color:red;">Valid Pincode is required</span>');
+                }
+                if (isValid) {
+                    $.post('@Url.Action("Edit1", "Jquery")', employeeData, function (response) {
+                        if (response.success) {
+                            alert('Employee Created successfully!');
+                            window.location.href = '/Jquery/ListEmployee';
+                        } else {
+                            alert('Failed to create employee.');
+                        }
+                    }).fail(function () {
+                        alert('Error in creating employee.');
+                    });
+                }
+                });
+        
+        });
+    </script>
+}
+

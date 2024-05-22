@@ -1,0 +1,127 @@
+﻿@model EmployeeManagement.Models.CompanyModel
+
+@{
+    ViewData["Title"] = "Company Page";
+}
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["ErrorMessage"]
+    </div>
+}
+
+<div class="company">
+    <h3 style="text-align:center">Company Form</h3>
+    <div class="companybody">
+        <div id="container">
+            <form class="form" asp-action="SaveCompany" method="post" autocomplete="off">
+                <div class="input-box">
+                    <label asp-for="CompanyName"></label>
+                    <input asp-for="CompanyName" class="form-control" />
+                    <span asp-validation-for="CompanyName" class="text-danger"></span>
+                    <span id="companyNameError" class="text-danger" style="display:none;">Company with this name already exists.</span>
+                </div>
+
+                <div class="input-box">
+                    <label asp-for="ContactPerson"></label>
+                    <input asp-for="ContactPerson" class="form-control" />
+                    <span asp-validation-for="ContactPerson" class="text-danger"></span>
+                </div>
+
+                <div class="input-box1">
+                    <label asp-for="Gender" class="form-label">Gender:</label>
+                    <div class="radio-group">
+                        <label><input type="radio" asp-for="Gender" value="Male" /> Male</label>
+                        <label><input type="radio" asp-for="Gender" value="Female" /> Female</label>
+                    </div>
+                    <span asp-validation-for="Gender" class="text-danger"></span>
+                </div>
+                <div class="input-box">
+                    <label asp-for="SelectedAreas" class="form-label">Area:</label>
+                    <div class="checkbox-group">
+                        @foreach (var area in ViewBag.areaData)
+                        {
+                            <label><input type="checkbox" name="SelectedAreas" value="@area.Area_Id" /> @area.Area</label>
+                        }
+                    </div>
+                    <span asp-validation-for="SelectedAreas" class="text-danger"></span>
+                </div>
+
+               
+
+
+
+
+
+
+
+
+                <div class="input-box">
+                    <label asp-for="Email"></label>
+                    <input asp-for="Email" class="form-control" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <div class="input-box">
+                    <label asp-for="PhoneNumber"></label>
+                    <input asp-for="PhoneNumber" class="form-control" />
+                    <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                </div>
+
+                <div class="input-box">
+                    <label asp-for="Address"></label>
+                    <input asp-for="Address" class="form-control" />
+                    <span asp-validation-for="Address" class="text-danger"></span>
+                </div>
+
+                <div class="input-box">
+                    <label asp-for="Country">Country :</label><br />
+                    <select asp-for="Country" class="form-control" asp-items="@ViewBag.countryData">
+                        <option value="">Select Country</option>
+                    </select>
+                    <span asp-validation-for="Country" class="text-danger"></span>
+                </div>
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <button type="submit" id="submitButton">Add Company</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $("#CompanyName").on("blur", function () {
+                var companyName = $(this).val();
+                if (companyName) {
+                    $.ajax({
+                        url: '@Url.Action("IsCompanyNameAvailable", "Company")',
+                        type: 'POST',
+                        data: { companyName: companyName },
+                        success: function (data) {
+                            if (!data) {
+                                $("#companyNameError").show();
+                                $("#submitButton").prop("disabled", true);
+                            } else {
+                                $("#companyNameError").hide();
+                                $("#submitButton").prop("disabled", false);
+                            }
+                        }
+                    });
+                }
+            });
+
+
+        });
+    </script>
+}
+
