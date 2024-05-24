@@ -78,6 +78,35 @@ namespace EmployeeManagement.DataAcessLayer
             }
         }
 
+
+        public bool IsEmailExists(string email)
+        {
+            using (SqlConnection connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                SqlCommand command = new SqlCommand("CheckEmail_Company", connection);
+                command.CommandType = CommandType.StoredProcedure;
+                command.Parameters.AddWithValue("@Email", email);
+                connection.Open();
+                int count = (int)command.ExecuteScalar();
+                return count > 0;
+            }
+        }
+
+
+        public bool IsPhoneNumberExists(string phoneNumber)
+        {
+            using (SqlConnection connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                SqlCommand command = new SqlCommand("CheckPhoneNumber_Company", connection);
+                command.CommandType = CommandType.StoredProcedure;
+                command.Parameters.AddWithValue("@PhoneNumber", phoneNumber);
+                connection.Open();
+                int count = (int)command.ExecuteScalar();
+                return count > 0;
+            }
+        }
+
+
         public bool SaveCompany(CompanyModel model, out string errorMessage)
             {
             errorMessage = string.Empty;
@@ -164,21 +193,48 @@ namespace EmployeeManagement.DataAcessLayer
                                     CompanyName = reader["CompanyName"].ToString(),
                                     ContactPerson = reader["ContactPerson"].ToString(),
                                     Gender = reader["Gender"].ToString(),
+                                    Areas= reader["Area"].ToString(),
                                     Email = reader["Email"].ToString(),
                                     PhoneNumber = reader["PhoneNumber"].ToString(),
                                     Address = reader["Address"].ToString(),
                                     Country = reader["Country"].ToString(),
-                                    SelectedAreas = new List<int>()
+                                   SelectedAreas = new List<string>()
                                 };
                                 companies.Add(company);
                             }
-
-                            // Add the area to the company's selected areas list
-                            int areaId = Convert.ToInt32(reader["Area_Id"]);
-                            if (areaId != 0) // Check if the areaId is not null
+                            //string areas = reader["Area"].ToString();
+/*                            if (!string.IsNullOrEmpty(areas))
                             {
-                                company.SelectedAreas.Add(areaId);
-                            }
+                                string[] areaNames = areas.Split(',');
+                                foreach (string areaName in areaNames)
+                                {
+                                    company.SelectedAreas.Add(areaName.Trim());  // Add area name to the list
+                                }
+                            }*/
+
+                            /*                      // Add the area to the company's selected areas list
+                                                  string areas = reader["Area"].ToString();
+                                                  if (!string.IsNullOrEmpty(areas))
+                                                  {
+                                                      string[] areaIds = areas.Split(','); // Split the areas string into individual area IDs
+                                                      foreach (string areaId in areaIds)
+                                                      {
+                                                          if (int.TryParse(areaId, out int parsedAreaId))
+                                                          {
+                                                              company.SelectedAreas.Add(parsedAreaId);
+                                                          }
+                                                      }
+                                                  }*/
+                            /*   // Add the area to the company's selected areas list
+                               int areaId = Convert.ToInt32(reader["Area_Id"]);
+                               if (areaId != 0) // Check if the areaId is not null
+                               {
+                                   company.SelectedAreas.Add(areaId);
+                               }*/
+
+
+
+
                         }
                     }
                 }
@@ -193,7 +249,111 @@ namespace EmployeeManagement.DataAcessLayer
 
 
 
+        public CompanyModel GetCompanyById(int id)
+        {
+            CompanyModel companyModel = null;
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+                {
+                    using (SqlCommand cmd = new SqlCommand("GetCompanyById_New", connection))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("@Id", id);
+                        connection.Open();
+                        SqlDataReader reader = cmd.ExecuteReader();
 
+                        if (reader.Read())
+                        {
+                            companyModel = new CompanyModel
+                            {
+                                Id = Convert.ToInt32(reader["CompanyID"]),
+                                CompanyName = reader["CompanyName"].ToString(),
+                                ContactPerson = reader["ContactPerson"].ToString(),
+                                Email = reader["Email"].ToString(),
+                                PhoneNumber = reader["PhoneNumber"].ToString(),
+                                Address = reader["Address"].ToString(),
+                                Gender = reader["Gender"].ToString(),
+                                Areas = reader["Area"].ToString(),
+                                Country = reader["Country"].ToString(),
+                                SelectedAreas = new List<string>()
+
+                            };
+                        }
+                    /*    if (reader.NextResult())//advance the reader to the next result set.
+                                                //It returns true if there are more result sets; otherwise, it returns false.
+                        {
+                            while (reader.Read())
+                            {
+                                companyModel.SelectedAreas.Add(reader["Area_Id"].ToString());
+                            }
+                        }*/
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+            return companyModel;
+        }
+
+
+
+        public bool UpdateCompany(CompanyModel company, out string errorMessage)
+        {
+            errorMessage = string.Empty;
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+                {
+                    using (SqlCommand command = new SqlCommand("UpdateCompany_New", connection))
+                    {
+                        command.CommandType = CommandType.StoredProcedure;
+                        command.Parameters.AddWithValue("@CompanyID", company.Id);
+                        command.Parameters.AddWithValue("@CompanyName", company.CompanyName);
+                        command.Parameters.AddWithValue("@ContactPerson", company.ContactPerson);
+                        command.Parameters.AddWithValue("@Gender", company.Gender);
+
+                        // Create and populate the DataTable for Areas
+                        DataTable areasTable = new DataTable();
+                        areasTable.Columns.Add("Area_Id", typeof(int));
+                        foreach (var areaId in company.SelectedAreas)
+                        {
+                            areasTable.Rows.Add(areaId);
+                        }
+
+                        SqlParameter areasParameter = new SqlParameter("@Area", SqlDbType.Structured)
+                        {
+                            TypeName = "dbo.AreaTableType",
+                            Value = areasTable
+                        };
+
+                        command.Parameters.Add(areasParameter);
+                        command.Parameters.AddWithValue("@Email", company.Email);
+                        command.Parameters.AddWithValue("@PhoneNumber", company.PhoneNumber);
+                        command.Parameters.AddWithValue("@Address", company.Address);
+                        command.Parameters.AddWithValue("@Country", company.Country);
+
+                        connection.Open();
+                        int rowsAffected = command.ExecuteNonQuery();
+                        return rowsAffected > 0;
+                    }
+                }
+            }
+            catch (SqlException ex)
+            {
+                  errorMessage = "An error occurred while updating the company.";
+                
+                return false;
+            }
+            catch (Exception ex)
+            {
+                errorMessage = "An unexpected error occurred.";
+                Console.WriteLine(ex.ToString());
+                return false;
+            }
+        }
 
 
 

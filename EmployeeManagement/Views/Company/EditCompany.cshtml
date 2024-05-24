@@ -1,5 +1,72 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model EmployeeManagement.Models.CompanyModel
+
 @{
+    ViewData["Title"] = "Edit Company";
 }
+
+<h3>Edit Company</h3>
+
+<form asp-action="EditCompany" method="post">
+    <div >
+        <label asp-for="CompanyName"></label>
+        <input asp-for="CompanyName" class="form-control"  />
+        <span asp-validation-for="CompanyName" class="text-danger"></span>
+    </div>
+
+    <div>
+        <label asp-for="ContactPerson"></label>
+        <input asp-for="ContactPerson" class="form-control" />
+        <span asp-validation-for="ContactPerson" class="text-danger"></span>
+    </div>
+
+    <div>
+        <label asp-for="Gender">Gender:</label>
+        <div>
+            <label><input type="radio" asp-for="Gender" value="Male" /> Male</label>
+            <label><input type="radio" asp-for="Gender" value="Female" /> Female</label>
+        </div>
+        <span asp-validation-for="Gender" class="text-danger"></span>
+    </div>
+
+    <div>
+        <label asp-for="Areas" class="form-label">Area:</label>
+        <div class="checkbox-group">
+            @foreach (var area in ViewBag.areaData)
+            {
+                <label>
+                    <input type="checkbox" name="SelectedAreas" value="@area.Area_Id"
+                    @(Model.Areas.Contains(area.Area.ToString()) ? "checked" : "") /> @area.Area
+                </label>
+            }
+        </div>
+        <span asp-validation-for="Areas" class="text-danger"></span>
+    </div>
+
+    <div>
+        <label asp-for="Email"></label>
+        <input asp-for="Email" class="form-control" />
+        <span asp-validation-for="Email" class="text-danger"></span>
+    </div>
+
+    <div>
+        <label asp-for="PhoneNumber"></label>
+        <input asp-for="PhoneNumber" class="form-control" />
+        <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+    </div>
+
+    <div>
+        <label asp-for="Address"></label>
+        <input asp-for="Address" class="form-control" />
+        <span asp-validation-for="Address" class="text-danger"></span>
+    </div>
+
+    <div>
+        <label asp-for="Country">Country :</label>
+        <select asp-for="Country" class="form-control" asp-items="@ViewBag.countryData">
+            <option value="">Select Country</option>
+        </select>
+        <span asp-validation-for="Country" class="text-danger"></span>
+    </div>
+
+    <button type="submit">Save Changes</button>
+</form>

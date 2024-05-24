@@ -66,12 +66,14 @@
                     <label asp-for="Email"></label>
                     <input asp-for="Email" class="form-control" />
                     <span asp-validation-for="Email" class="text-danger"></span>
+                    <span id="emailError" class="text-danger" style="display:none;">Email already exists.</span>
                 </div>
 
                 <div class="input-box">
                     <label asp-for="PhoneNumber"></label>
                     <input asp-for="PhoneNumber" class="form-control" />
                     <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                    <span id="phoneNumberError" class="text-danger" style="display:none;">PhoneNumber already exists.</span>
                 </div>
 
                 <div class="input-box">
@@ -123,7 +125,45 @@
                     });
                 }
             });
+            $("#Email").on("blur", function () {
+                var email = $(this).val();
+                if (email) {
+                    $.ajax({
+                        url: '@Url.Action("IsEmailAvailable", "Company")',
+                        type: 'POST',
+                        data: { email: email },
+                        success: function (data) {
+                            if (!data) {
+                                $("#emailError").show();
+                                $("#submitButton").prop("disabled", true);
+                            } else {
+                                $("#emailError").hide();
+                                $("#submitButton").prop("disabled", false);
+                            }
+                        }
+                    });
+                }
+            });
 
+            $("#PhoneNumber").on("blur", function () {
+                var phoneNumber = $(this).val();
+                if (phoneNumber) {
+                    $.ajax({
+                        url: '@Url.Action("IsPhoneNumberAvailable", "Company")',
+                        type: 'POST',
+                        data: { phoneNumber: phoneNumber },
+                        success: function (data) {
+                            if (!data) {
+                                $("#phoneNumberError").show();
+                                $("#submitButton").prop("disabled", true);
+                            } else {
+                                $("#phoneNumberError").hide();
+                                $("#submitButton").prop("disabled", false);
+                            }
+                        }
+                    });
+                }
+            });
 
         });
     </script>

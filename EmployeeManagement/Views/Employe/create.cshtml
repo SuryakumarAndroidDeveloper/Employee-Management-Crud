@@ -1,13 +1,21 @@
 ﻿@model EmployeeManagement.Models.EmployeModel
+
 @{
     ViewData["Title"] = "Employee Page";
 }
+
 <div class="company">
-    <h3 style="text-align:center">Employee Form</h3>
+    
+    <div>
+        <a asp-action="ListEmployee" style="margin-left:10px" class="btn btn-primary">Back to List</a>
+        <h3>Employee Form</h3>
+    </div>
     <div class="companybody">
+        
         <div id="container">
+           
             <form class="form" asp-action="Insert" method="post">
-                @Html.AntiForgeryToken() 
+                @Html.AntiForgeryToken()
 
                 <div class="input-box">
                     <label asp-for="CompanyName"></label>
@@ -25,14 +33,16 @@
 
                 <div class="input-box">
                     <label asp-for="Email"></label>
-                    <input asp-for="Email" class="form-control" />
+                    <input asp-for="Email" class="form-control" id="Email" />
                     <span asp-validation-for="Email" class="text-danger"></span>
+                    <span id="emailError" class="text-danger" style="display:none;">Email already exists.</span>
                 </div>
 
                 <div class="input-box">
                     <label asp-for="Mobile"></label>
-                    <input asp-for="Mobile" class="form-control" />
+                    <input asp-for="Mobile" class="form-control" id="Mobile" />
                     <span asp-validation-for="Mobile" class="text-danger"></span>
+                    <span id="mobileError" class="text-danger" style="display:none;">Mobile already exists.</span>
                 </div>
 
                 <div class="input-box">
@@ -54,20 +64,63 @@
                 </div>
 
                 <div class="input-box">
-                    <input type="submit" value="Submit" class="btn btn-primary" />
+                    <input type="submit" value="Submit" class="btn btn-primary" id="submitButton" />
                 </div>
             </form>
 
-
-
-<div>
-    <a asp-action="ListEmployee" style="font-size:20px">Back to List</a>
-</div>
-
-</div>
+            <div>
+                <a asp-action="ListEmployee" class="btn btn-primary">Back to List</a>
+            </div>
+        </div>
     </div>
 </div>
 
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $("#Email").on("blur", function () {
+                var email = $(this).val();
+                if (email) {
+                    $.ajax({
+                        url: '@Url.Action("IsEmailAvailable", "Employe")',
+                        type: 'POST',
+                        data: { email: email },
+                        success: function (data) {
+                            if (!data) {
+                                $("#emailError").show();
+                                $("#submitButton").prop("disabled", true);
+                            } else {
+                                $("#emailError").hide();
+                                $("#submitButton").prop("disabled", false);
+                            }
+                        }
+                    });
+                }
+            });
+
+            $("#Mobile").on("blur", function () {
+                var mobile = $(this).val();
+                if (mobile) {
+                    $.ajax({
+                        url: '@Url.Action("IsMobileAvailable", "Employe")',
+                        type: 'POST',
+                        data: { mobile: mobile },
+                        success: function (data) {
+                            if (!data) {
+                                $("#mobileError").show();
+                                $("#submitButton").prop("disabled", true);
+                            } else {
+                                $("#mobileError").hide();
+                                $("#submitButton").prop("disabled", false);
+                            }
+                        }
+                    });
+                }
+            });
+        });
+    </script>
 }

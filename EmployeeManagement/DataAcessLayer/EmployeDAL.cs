@@ -45,6 +45,34 @@ namespace EmployeeManagement.DataAcessLayer
         }
 
 
+        public bool IsEmailExists(string email)
+        {
+            using (SqlConnection connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                SqlCommand command = new SqlCommand("CheckEmail", connection);
+                command.CommandType = CommandType.StoredProcedure;
+                command.Parameters.AddWithValue("@Email", email);
+                connection.Open();
+                int count = (int)command.ExecuteScalar();
+                return count > 0;
+            }
+        }
+
+        public bool IsMobileExists(string mobile)
+        {
+            using (SqlConnection connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                SqlCommand command = new SqlCommand("CheckMobile", connection);
+                command.CommandType = CommandType.StoredProcedure;
+                command.Parameters.AddWithValue("@Mobile", mobile);
+                connection.Open();
+                int count = (int)command.ExecuteScalar();
+                return count > 0;
+            }
+        }
+
+
+
 
 
 
@@ -373,6 +401,13 @@ namespace EmployeeManagement.DataAcessLayer
                 return false;
             }
         }
+
+
+
+
+
+
+
 
     }
 }

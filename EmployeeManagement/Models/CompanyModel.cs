@@ -21,14 +21,15 @@ namespace EmployeeManagement.Models
 
         [Required(ErrorMessage = "Gender is required.")]
         public string Gender { get; set; }
-
+//nullable ?
+        public string? Areas { get; set; }
 
         [Required(ErrorMessage = "Please select at least one area")]
-        public List<int> SelectedAreas { get; set; }
+        public List<string> SelectedAreas { get; set; }
 
         public CompanyModel()
         {
-            SelectedAreas = new List<int>();
+            SelectedAreas = new List<string>();
         }
 
 

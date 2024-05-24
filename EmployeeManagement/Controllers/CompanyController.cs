@@ -3,6 +3,8 @@ using EmployeeManagement.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Collections.Generic;
+using System.Reflection.Metadata.Ecma335;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace EmployeeManagement.Controllers
 {
@@ -37,6 +39,18 @@ namespace EmployeeManagement.Controllers
     }
 
         [HttpPost]
+        public IActionResult IsEmailAvailable(string email)
+        {
+            bool exists = _companyDAL.IsEmailExists(email);
+            return Json(!exists);
+        }
+        [HttpPost]
+        public IActionResult IsPhoneNumberAvailable(string phoneNumber)
+        {
+            bool exists = _companyDAL.IsPhoneNumberExists(phoneNumber);
+            return Json(!exists);
+        }
+        [HttpPost]
         public IActionResult SaveCompany(CompanyModel model)
         {
             if (ModelState.IsValid)
@@ -67,10 +81,54 @@ namespace EmployeeManagement.Controllers
            
         }
 
-        public IActionResult EditCompany()
+
+
+        [HttpGet]
+
+        [HttpGet]
+        public IActionResult EditCompany(int id)
         {
-            return View();
+            var company = _companyDAL.GetCompanyById(id);
+            if (company == null)
+            {
+                return NotFound();
+            }
+            List<CountryModel> countryData = _companyDAL.GetCountryData();
+            ViewBag.countryData = new SelectList(countryData, "Id", "Country");
+
+            List<AreaModel> areaData = _companyDAL.GetAreaData();
+            ViewBag.areaData = areaData;
+
+            return View(company);
         }
+
+        [HttpPost]
+        public IActionResult EditCompany(CompanyModel companyModel)
+        {
+
+            if (ModelState.IsValid)
+            {
+                if (_companyDAL.UpdateCompany (companyModel, out string errorMessage))
+                {
+                    TempData["SuccessMessage"] = "Company updated successfully.";
+                    return RedirectToAction("ListCompany");
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, errorMessage);
+                }
+            }
+            List<CountryModel> countryData = _companyDAL.GetCountryData();
+            ViewBag.countryData = new SelectList(countryData, "Id", "Country");
+
+            List<AreaModel> areaData = _companyDAL.GetAreaData();
+            ViewBag.areaData = areaData;
+            return View(companyModel);
+        }
+
+
+
+
 
 
 

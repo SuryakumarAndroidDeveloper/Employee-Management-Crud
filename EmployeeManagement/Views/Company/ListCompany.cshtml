@@ -37,27 +37,17 @@
                 <td>@company.ContactPerson</td>
                 <td>@company.Gender</td>
                 <td>
-                    @if (company.SelectedAreas != null && company.SelectedAreas.Any())
-                    {
-                        <ul>
-                            @foreach (var areaId in company.SelectedAreas)
-                            {
-                                <li>@areaId</li>
-                            }
-                        </ul>
-                    }
-                    else
-                    {
-                        <span>No areas selected</span>
-                    }
+                    @company.Areas
                 </td>
                 <td>@company.Email</td>
                 <td>@company.PhoneNumber</td>
                 <td>@company.Address</td>
                 <td>@company.Country</td>
                 <td>
-                    <a asp-action="Edit" asp-route-id="@company.Id" class="btn btn-primary">Edit</a>
-                    <!-- Add other actions if needed -->
+                    <div class="action-buttons">
+                    <a asp-action="EditCompany" asp-route-id="@company.Id" class="btn btn-primary">Edit</a>
+
+                    </div>
                 </td>
             </tr>
         }

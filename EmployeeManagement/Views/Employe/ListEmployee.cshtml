@@ -11,10 +11,14 @@
 }
 
 <h2>Employee List</h2>
+<button id="deleteSelected" class="btn btn-danger" style="display:none;">Delete Selected</button>
+
 
 <table class="table table-striped">
     <thead>
         <tr>
+            <th><input type="checkbox" id="CheckAll" /></th>
+          
             <th>ID</th>
             <th>Company Name</th>
             <th>Name</th>
@@ -30,6 +34,8 @@
         @foreach (var employee in Model)
         {
             <tr>
+
+                <td><input type="checkbox" class="check" data-id="@employee.Id" /></td>
                 <td>@employee.Id</td>
                 <td>@employee.CompanyName</td>
                 <td>@employee.Name</td>
@@ -39,20 +45,54 @@
                 <td>@employee.City</td>
                 <td>@employee.Pincode</td>
                 <td >
+                    <div class="action-buttons">
                     <a  asp-action="Edit" asp-route-id="@employee.Id" class="btn btn-primary">Edit</a>
-                  </td>
-                <td>
+                  
+            
                     <form action="DeactivateEmployee" method="post">
                          <input type="hidden" name="id" value="@employee.Id" />
-                            <button type="submit" onclick="return confirm('Are you sure you want to delete this employee?')">Delete</button>
+                            <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this employee?')">Delete</button>
                       </form>
-                </td>
-                <td>
-                    <a asp-action="ViewEmployee" asp-route-id="@employee.Id" class="btn btn-primary">View</a>
+                
+                
+                        <a asp-action="ViewEmployee" asp-route-id="@employee.Id" lass="btn btn-secondary">View</a>
+                    </div>
                 </td>
             </tr>
         }
     </tbody>
 </table>
+
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#CheckAll').click(function () {
+                $('.check').prop('checked', this.checked);
+                $('#deleteSelected').toggle($('.check:checked').length > 0);
+            });
+
+            $('.check').change(function () {
+                $('#deleteSelected').toggle($('.check:checked').length > 0);
+            });
+
+            $('#deleteSelected').click(function () {
+                var ids = [];
+                $('.check:checked').each(function () {
+                    ids.push($(this).data('id'));
+                });
+
+                $.ajax({
+                    url: '@Url.Action("DeleteSelectedEmployees", "Employee")',
+                    type: 'POST',
+                    data: { ids: ids },
+                    success: function (result) {
+                        location.reload();
+                    }
+                });
+            });
+        });
+    </script>
+}
 
 

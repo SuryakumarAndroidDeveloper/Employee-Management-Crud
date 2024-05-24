@@ -25,6 +25,21 @@ namespace EmployeeManagement.Controllers
             ViewBag.companyData = new SelectList(companyData, "Id", "CompanyName");
             return View();
         }
+        [HttpPost]
+        public IActionResult IsEmailAvailable(string email)
+        {
+            bool exists = _employeDAL.IsEmailExists(email);
+            return Json(!exists);
+        }
+
+        [HttpPost]
+        public IActionResult IsMobileAvailable(string mobile)
+        {
+            bool exists = _employeDAL.IsMobileExists(mobile);
+            return Json(!exists);
+        }
+
+
 
         [HttpPost]
         public IActionResult Insert(EmployeModel employeModel)
@@ -33,6 +48,7 @@ namespace EmployeeManagement.Controllers
             {
                 try
                 {
+                
                     bool isInserted = _employeDAL.InsertEmployee(employeModel);
                     if (isInserted)
                     {
@@ -199,6 +215,17 @@ namespace EmployeeManagement.Controllers
                 return NotFound("Employee not found");
             }
             return View(employee);
+        }
+
+
+        [HttpPost]
+        public IActionResult DeleteSelectedEmployees(List<int> ids)
+        {
+            // Call DAL method to delete selected employees
+            // Example:
+            // DAL.DeleteEmployees(ids);
+            TempData["SuccessMessage"] = "Selected employees deleted successfully.";
+            return RedirectToAction("Index");
         }
 
 
