@@ -421,12 +421,6 @@ namespace EmployeeManagement.DataAcessLayer
                     cmd.ExecuteNonQuery();
                 }
 
-
-
-
-                return employeeIds;
-
-             
             }
         }
 
