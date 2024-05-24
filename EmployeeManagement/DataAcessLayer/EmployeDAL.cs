@@ -1,7 +1,9 @@
 ﻿using EmployeeManagement.Models;
+using Microsoft.CodeAnalysis.Elfie.Diagnostics;
 using System.Data;
 using System.Data.SqlClient;
 using System.Data.SqlTypes;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace EmployeeManagement.DataAcessLayer
 {
@@ -403,7 +405,42 @@ namespace EmployeeManagement.DataAcessLayer
         }
 
 
+        public void DeleteEmployees(List<int> employeeIds)
+        {
+            using (SqlConnection connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                using (SqlCommand cmd = new SqlCommand("DeleteEmployeesByIds", connection))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    // Add parameter for list of IDs
+                    SqlParameter parameter = new SqlParameter("@EmployeeIds", SqlDbType.Structured);
+                    parameter.Value = ConvertToDataTable(employeeIds);
+                    parameter.TypeName = "dbo.IntList"; // Assuming IntList is a user-defined table type in your database
+                    cmd.Parameters.Add(parameter);
+                    connection.Open();
+                    cmd.ExecuteNonQuery();
+                }
 
+
+
+
+                return employeeIds;
+
+             
+            }
+        }
+
+        // Helper method to convert list of IDs to DataTable
+        private DataTable ConvertToDataTable(List<int> employeeIds)
+        {
+            DataTable table = new DataTable();
+            table.Columns.Add("Id", typeof(int));
+            foreach (int id in employeeIds)
+            {
+                table.Rows.Add(id);
+            }
+            return table;
+        }
 
 
 

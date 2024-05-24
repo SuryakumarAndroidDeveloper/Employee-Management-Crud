@@ -219,13 +219,14 @@ namespace EmployeeManagement.Controllers
 
 
         [HttpPost]
-        public IActionResult DeleteSelectedEmployees(List<int> ids)
+        public IActionResult DeleteSelectedEmployees(List<int> id)
         {
             // Call DAL method to delete selected employees
             // Example:
             // DAL.DeleteEmployees(ids);
+            var employee = _employeDAL.DeleteEmployees(id);
             TempData["SuccessMessage"] = "Selected employees deleted successfully.";
-            return RedirectToAction("Index");
+            return RedirectToAction("ListEmployee");
         }
 
 
