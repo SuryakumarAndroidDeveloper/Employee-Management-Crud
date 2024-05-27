@@ -10,6 +10,7 @@
     </div>
 }
 
+
 <h2>Employee List</h2>
 <button id="deleteSelected" class="btn btn-danger" style="display:none;">Delete Selected</button>
 
@@ -17,7 +18,7 @@
 <table class="table table-striped">
     <thead>
         <tr>
-            <th><input type="checkbox" id="CheckAll" /></th>
+            <th>Select All <input type="checkbox" id="CheckAll" /></th>
           
             <th>ID</th>
             <th>Company Name</th>
@@ -35,7 +36,7 @@
         {
             <tr>
 
-                <td><input type="checkbox" class="check" data-id="@employee.Id" /></td>
+                <td>&nbsp; &nbsp;&nbsp; &nbsp;  <input type="checkbox" class="check" data-id="@employee.Id" /></td>
                 <td>@employee.Id</td>
                 <td>@employee.CompanyName</td>
                 <td>@employee.Name</td>
@@ -79,17 +80,32 @@
             $('#deleteSelected').click(function () {
                 var ids = [];
                 $('.check:checked').each(function () {
-                    ids.push($(this).data('id'));
-                });
-
-                $.ajax({
-                    url: '@Url.Action("DeleteSelectedEmployees", "Employe")',
-                    type: 'POST',
-                    data: { ids: ids },
-                    success: function (result) {
-                        location.reload();
+                    var id = $(this).data('id');
+                    console.log('Checked ID:', id); //this line for debugging
+                    if (id !== undefined) {
+                        ids.push(id);
                     }
                 });
+
+                console.log('IDs to delete:', ids); // this line for debugging
+
+                if (ids.length > 0) {
+                    $.ajax({
+                        url: '@Url.Action("DeleteSelectedEmployees", "Employe")',
+                        type: 'POST',
+                        data: JSON.stringify(ids), // Correcting the format of the data sent
+                        contentType: 'application/json; charset=utf-8',
+                        success: function (result) {
+                            alert("Selected Employee Deleted Sucessfully")
+                            location.reload();
+                        },
+                        error: function (xhr, status, error) {
+                            console.error(xhr.responseText); // Log the error response for debugging
+                        }
+                    });
+                } else {
+                    alert('No employees selected for deletion.');
+                }
             });
         });
     </script>

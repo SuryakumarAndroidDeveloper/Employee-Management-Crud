@@ -216,18 +216,27 @@ namespace EmployeeManagement.Controllers
             }
             return View(employee);
         }
-
-
         [HttpPost]
-        public IActionResult DeleteSelectedEmployees(List<int> id)
+        public IActionResult DeleteSelectedEmployees([FromBody] List<int> ids)
         {
-            // Call DAL method to delete selected employees
-            // Example:
-            // DAL.DeleteEmployees(ids);
-            var employee = _employeDAL.DeleteEmployees(id);
-            TempData["SuccessMessage"] = "Selected employees deleted successfully.";
-            return RedirectToAction("ListEmployee");
+            if (ids == null || ids.Count == 0)
+            {
+                return BadRequest("No IDs provided for deletion.");
+            }
+
+            try
+            {
+                _employeDAL.DeleteEmployees(ids);
+                TempData["SuccessMessage"] = "Selected employees deleted successfully.";
+                return RedirectToAction("ListEmployee");
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                return StatusCode(500, "Internal server error: " + ex.Message);
+            }
         }
+
 
 
 

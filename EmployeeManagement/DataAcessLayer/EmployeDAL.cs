@@ -407,25 +407,26 @@ namespace EmployeeManagement.DataAcessLayer
 
         public void DeleteEmployees(List<int> employeeIds)
         {
+            if (employeeIds == null || employeeIds.Count == 0)
+            {
+                throw new ArgumentNullException(nameof(employeeIds), "The list of employee IDs cannot be null or empty.");
+            }
+            string idList = string.Join(",", employeeIds);
+
             using (SqlConnection connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
             {
                 using (SqlCommand cmd = new SqlCommand("DeleteEmployeesByIds", connection))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
-                    // Add parameter for list of IDs
-                    SqlParameter parameter = new SqlParameter("@EmployeeIds", SqlDbType.Structured);
-                    parameter.Value = ConvertToDataTable(employeeIds);
-                    parameter.TypeName = "dbo.IntList"; // Assuming IntList is a user-defined table type in your database
-                    cmd.Parameters.Add(parameter);
+                    cmd.Parameters.AddWithValue("@Id", idList);
                     connection.Open();
                     cmd.ExecuteNonQuery();
                 }
-
             }
         }
 
         // Helper method to convert list of IDs to DataTable
-        private DataTable ConvertToDataTable(List<int> employeeIds)
+/*        private DataTable ConvertToDataTable(List<int> employeeIds)
         {
             DataTable table = new DataTable();
             table.Columns.Add("Id", typeof(int));
@@ -434,7 +435,7 @@ namespace EmployeeManagement.DataAcessLayer
                 table.Rows.Add(id);
             }
             return table;
-        }
+        }*/
 
 
 
