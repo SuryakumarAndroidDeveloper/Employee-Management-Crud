@@ -1,13 +1,18 @@
 
 
 using EmployeeManagement.DataAcessLayer;
+using EmployeeManagement.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Add Framework MVC services to the Container.
+builder.Services.AddMvc();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<EmployeDAL>();
 builder.Services.AddScoped<CompanyDAL>();
+builder.Services.AddSingleton<IStudentRepository, StudentRepo>();
 
 var app = builder.Build();
 
