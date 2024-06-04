@@ -1,0 +1,74 @@
+﻿@model IEnumerable<MyCaRt.Models.CustomerInterestedCategory>
+
+@{
+    ViewData["Title"] = "ListOfCustomers";
+}
+
+<h1>ListOfCustomers</h1>
+
+<p>
+    <a asp-action="Customer">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Customer_Id)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Customer_FName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Customer_LName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Customer_Gender)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Customer_InterestedCategory)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Customer_Email)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Customer_Mobile)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Customer_Id)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Customer_FName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Customer_LName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Customer_Gender)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Customer_InterestedCategory)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Customer_Email)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Customer_Mobile)
+            </td>
+            <td>
+                    @Html.ActionLink("Edit", "Edit", new { id = item.Customer_Id }) |
+                    <form asp-action="Deactivate" method="post">
+                        <input type="hidden" name="id" value="@item.Customer_Id" />
+                        <button type="submit" onclick="return confirm('Are you sure you want to delete this customer?')">Delete</button>
+                    </form>
+                  @*   @Html.ActionLink("Delete", "Delete", new { id = item.Customer_Id }) *@
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

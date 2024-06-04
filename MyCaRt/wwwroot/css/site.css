@@ -1,0 +1,63 @@
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 60px;
+}
+
+.quantity-wrapper {
+    display: flex;
+    align-items: center; /* Vertically align elements */
+}
+
+.quantity-label {
+    margin-right: 5px; /* Add spacing after label */
+}
+
+.quantity-input {
+    width: 50px; /* Adjust width as needed */
+    text-align: center; /* Center quantity value */
+}
+
+.quantity-buttons {
+    display: flex;
+    margin-left: 5px; /* Add spacing after input */
+}
+
+.quantity-button {
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+    padding: 5px; /* Adjust padding if needed */
+}
+
+    .quantity-button:hover {
+        background-color: #eee; /* Add hover effect */
+    }
+
+/* Optional: Style buttons for increment/decrement appearance */
+.quantity-up:after {
+    content: "+";
+    font-weight: bold;
+}
+
+.quantity-down:after {
+    content: "-";
+    font-weight: bold;
+}

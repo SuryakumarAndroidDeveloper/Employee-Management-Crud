@@ -1,0 +1,73 @@
+﻿@model MyCaRt.Models.CustomerModel
+
+@{
+    ViewData["Title"] = "Edit Customer";
+    var categoryData = ViewBag.CategoryData as List<ProductCategoryModel>;
+}
+
+<h1>Edit Customer</h1>
+
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="form-group">
+                <label asp-for="Customer_FName" class="control-label"></label>
+                <input asp-for="Customer_FName" class="form-control" />
+                <span asp-validation-for="Customer_FName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Customer_LName" class="control-label"></label>
+                <input asp-for="Customer_LName" class="form-control" />
+                <span asp-validation-for="Customer_LName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Customer_Gender" class="control-label">Gender:</label>
+                <div>
+                    <label><input type="radio" asp-for="Customer_Gender" name="Customer_Gender" value="Male" /> Male</label>
+                    <label><input type="radio" asp-for="Customer_Gender" name="Customer_Gender" value="Female" /> Female</label>
+                    <label><input type="radio" asp-for="Customer_Gender" name="Customer_Gender" value="Other" /> Other</label>
+                </div>
+                <span asp-validation-for="Customer_Gender" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Customer_Email" class="control-label"></label>
+                <input asp-for="Customer_Email" class="form-control" />
+                <span asp-validation-for="Customer_Email" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Customer_Mobile" class="control-label"></label>
+                <input asp-for="Customer_Mobile" class="form-control" />
+                <span asp-validation-for="Customer_Mobile" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="SelectedAreas" class="form-label">Area:</label>
+                <div class="checkbox-group">
+                    @foreach (var area in categoryData)
+                    {
+                        <label>
+                            <input type="checkbox" name="SelectedAreas" value="@area.Category_Id"
+                            @(Model.Customer_InterestedCategory.Contains(area.Category_Name.ToString()) ? "checked" : "")/> @area.Category_Name</label>
+                    }
+                </div>
+                <span asp-validation-for="SelectedAreas" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <input type="submit" value="Save Changes" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

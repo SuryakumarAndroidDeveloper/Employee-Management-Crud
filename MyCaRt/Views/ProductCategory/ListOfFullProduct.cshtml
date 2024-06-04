@@ -1,0 +1,222 @@
+﻿@model IEnumerable<MyCaRt.Models.ProductModel>
+
+@{
+    ViewData["Title"] = "ListOfFullProduct";
+}
+<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+    .card {
+        margin-bottom: 20px;
+    }
+
+        .card .card-body {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .card .card-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+        }
+
+        .card .card-text {
+            margin-bottom: 0.75rem;
+        }
+
+        .card .btn-group .btn {
+            margin-right: 5px;
+        }
+
+        .card .btn-group form {
+            display: inline;
+            align-items: center;
+        }
+
+    .add-to-cart {
+        color: #6c757d; /* Default color for outline-secondary button */
+        border-color: #6c757d; /* Default border color for outline-secondary button */
+    }
+
+        .add-to-cart:hover {
+            color: #fff !important;
+            background-color: #28a745 !important; /* Green background color on hover */
+            border-color: #28a745 !important; /* Green border color on hover */
+        }
+
+    .quantity-input {
+        width: 60px;
+        margin-right: 10px;
+    }
+
+    .quantity-label {
+        margin-right: 5px;
+        font-weight: bold;
+    }
+</style>
+
+<h1>List Of Full Product</h1>
+
+<form method="post" id="productForm">
+    <div class="form-group">
+        <label for="Customer_FName" class="control-label">Customer Name</label>
+        <select id="Customer_FName" name="Customer_FName" class="form-control" asp-items="@ViewBag.categoryData">
+            <option value="">Select Customer Name</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="SelectedAreas" class="form-label">Filter:</label>
+        <div class="checkbox-group">
+            @foreach (var area in ViewBag.productData)
+            {
+                <label><input type="checkbox" name="SelectedAreas" value="@area.Category_Name" /> @area.Category_Name</label>
+            }
+        </div>
+    </div>
+
+    <div id="product-container" class="container">
+        <div class="row">
+            @foreach (var item in Model)
+            {
+                <div class="col-md-4">
+                    <div class="card mb-4 shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title"><strong>Product_Name:</strong> @Html.DisplayFor(modelItem => item.Product_Name)</h5>
+                            <p class="card-text"><strong>Category:</strong> @Html.DisplayFor(modelItem => item.Product_Category)</p>
+                            <p class="card-text"><strong>Code:</strong> @Html.DisplayFor(modelItem => item.Product_Code)</p>
+                            <p class="card-text"><strong>Price:</strong> @Html.DisplayFor(modelItem => item.Product_Price)</p>
+                            <p class="card-text"><strong>Description:</strong> @Html.DisplayFor(modelItem => item.Product_Description)</p>
+                            <p class="card-text"><strong>Available Quantity:</strong> @Html.DisplayFor(modelItem => item.Available_Quantity)</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="btn-group">
+                                    <input type="hidden" id="Product_Id" name="Product_Id" value="@item.Product_Id" />
+                                    <label for="Quantity" class="quantity-label">Qty:</label>
+                                    <input type="number" id="Quantity" name="Quantity" min="1" max="@item.Available_Quantity" value="1" class="form-control quantity-input" />
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary add-to-cart">Add to cart</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            console.log("Document is ready.");
+
+            $('#product-container').on('click', '.add-to-cart', function (event) {
+                event.preventDefault(); // Prevent the default form submission
+                console.log("Add to cart button clicked.");
+                var card = $(this).closest('.card');
+                var productId = card.find('input[name="Product_Id"]').val();
+                var quantity = card.find('input[name="Quantity"]').val();
+                var customerName = $('#Customer_FName').val();
+
+                if (!customerName) {
+                    alert('Please select a customer.');
+                    return;
+                }
+
+                var cartData = {
+                    Customer_FName: customerName,
+                    Product_Id: productId,
+                    Quantity: quantity
+                };
+                console.log("Sending AJAX request with cart data:", cartData);
+
+                $.ajax({
+                    type: 'POST',
+                    url: '@Url.Action("AddToCart", "ProductCategory")',
+                    data: cartData,
+                    success: function (response) {
+                        console.log("AJAX response received:", response);
+                        if (response.success) {
+                            alert('Cart added successfully!');
+                            window.location.href = '@Url.Action("ListOfFullProduct", "ProductCategory")';
+                        } else {
+                            alert('Failed to add cart.' );
+                        }
+                    },
+                    error: function () {
+                        alert('Error in adding cart.');
+                    }
+                });
+            });
+
+            $('input[name="SelectedAreas"]').change(function () {
+                var selectedCategories = [];
+                $('input[name="SelectedAreas"]:checked').each(function () {
+                    selectedCategories.push($(this).val());
+                });
+
+                $.ajax({
+                    type: 'POST',
+                    url: '@Url.Action("FilterProducts", "ProductCategory")',
+                    data: JSON.stringify(selectedCategories),
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (response) {
+                        if (response.success) {
+                            updateProductList(response.products);
+                        } else {
+                            alert(response.message);
+                        }
+                    },
+                    error: function () {
+                        alert('Error in filtering products.');
+                    }
+                });
+            });
+
+            function updateProductList(products) {
+                var productContainer = $('#product-container');
+                productContainer.empty();
+                var columnCount = 3;
+                var productCount = products.length;
+                var rowCount = Math.ceil(productCount / columnCount);
+
+                for (var i = 0; i < rowCount; i++) {
+                    var row = $('<div class="row"></div>');
+
+                    for (var j = 0; j < columnCount; j++) {
+                        var index = i * columnCount + j;
+
+                        if (index < productCount) {
+                            var product = products[index];
+                            var productHtml = `
+                                        <div class="col-md-4">
+                                            <div class="card mb-4 shadow-sm">
+                                                <div class="card-body">
+                                                    <h5 class="card-title"><strong>Product_Name:</strong> ${product.product_Name}</h5>
+                                                    <p class="card-text"><strong>Category:</strong> ${product.product_Category}</p>
+                                                    <p class="card-text"><strong>Code:</strong> ${product.product_Code}</p>
+                                                    <p class="card-text"><strong>Price:</strong> ${product.product_Price}</p>
+                                                    <p class="card-text"><strong>Description:</strong> ${product.product_Description}</p>
+                                                    <p class="card-text"><strong>Available Quantity:</strong> ${product.available_Quantity}</p>
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <div class="btn-group">
+                                                            <input type="hidden" id="Product_Id" name="Product_Id" value="${product.product_Id}" />
+                                                            <label for="Quantity" class="quantity-label">Qty:</label>
+                                                            <input type="number" id="Quantity" name="Quantity" min="1" max="${product.available_Quantity}" value="1" class="form-control quantity-input" />
+                                                            <button type="submit" class="btn btn-sm btn-outline-secondary add-to-cart">Add to cart</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>`;
+                            row.append(productHtml);
+                        }
+                    }
+                    productContainer.append(row);
+                }
+            }
+        });
+    </script>
+}
