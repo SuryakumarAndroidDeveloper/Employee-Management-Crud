@@ -39,11 +39,23 @@
         border-color: #6c757d; /* Default border color for outline-secondary button */
     }
 
+    .add-to-WishList {
+        color: #6c757d; /* Default color for outline-secondary button */
+        border-color: #6c757d; /* Default border color for outline-secondary button */
+    }
+
         .add-to-cart:hover {
             color: #fff !important;
             background-color: #28a745 !important; /* Green background color on hover */
             border-color: #28a745 !important; /* Green border color on hover */
         }
+
+        .add-to-WishList:hover {
+            color: #fff !important;
+        background-color: #FF0000 !important; /* Green background color on hover */
+        border-color: #FF0000 !important; /* Green border color on hover */
+        }
+
 
     .quantity-input {
         width: 60px;
@@ -95,6 +107,7 @@
                                     <label for="Quantity" class="quantity-label">Qty:</label>
                                     <input type="number" id="Quantity" name="Quantity" min="1" max="@item.Available_Quantity" value="1" class="form-control quantity-input" />
                                     <button type="submit" class="btn btn-sm btn-outline-secondary add-to-cart">Add to cart</button>
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary add-to-WishList">Add to WishList</button>
                                 </div>
                             </div>
                         </div>
@@ -134,19 +147,58 @@
 
                 $.ajax({
                     type: 'POST',
-                    url: '@Url.Action("AddToCart", "ProductCategory")',
+                    url: '@Url.Action("AddToCart", "Cart")',
                     data: cartData,
                     success: function (response) {
                         console.log("AJAX response received:", response);
                         if (response.success) {
                             alert('Cart added successfully!');
-                            window.location.href = '@Url.Action("ListOfFullProduct", "ProductCategory")';
+                            window.location.href = '@Url.Action("ListOfFullProduct", "Product")';
                         } else {
                             alert('Failed to add cart.' );
                         }
                     },
                     error: function () {
                         alert('Error in adding cart.');
+                    }
+                });
+            });
+
+            $('#product-container').on('click', '.add-to-WishList', function (event) {
+                event.preventDefault(); // Prevent the default form submission
+                console.log("Add to Wishlist button clicked.");
+                var card = $(this).closest('.card');
+                var productId = card.find('input[name="Product_Id"]').val();
+                var quantity = card.find('input[name="Quantity"]').val();
+                var customerName = $('#Customer_FName').val();
+
+                if (!customerName) {
+                    alert('Please select a customer.');
+                    return;
+                }
+
+                var cartData = {
+                    Customer_FName: customerName,
+                    Product_Id: productId,
+                    Quantity: quantity
+                };
+                console.log("Sending AJAX request with cart data:", cartData);
+
+                $.ajax({
+                    type: 'POST',
+                    url: '@Url.Action("AddToWishList", "WishList")',
+                    data: cartData,
+                    success: function (response) {
+                        console.log("AJAX response received:", response);
+                        if (response.success) {
+                            alert('WishList added successfully!');
+                            window.location.href = '@Url.Action("ListOfFullProduct", "Product")';
+                        } else {
+                            alert('Failed to add wishlist.');
+                        }
+                    },
+                    error: function () {
+                        alert('Error in adding wishlist.');
                     }
                 });
             });
@@ -159,7 +211,7 @@
 
                 $.ajax({
                     type: 'POST',
-                    url: '@Url.Action("FilterProducts", "ProductCategory")',
+                    url: '@Url.Action("FilterProducts", "Product")',
                     data: JSON.stringify(selectedCategories),
                     contentType: 'application/json; charset=utf-8',
                     success: function (response) {
@@ -206,6 +258,7 @@
                                                             <label for="Quantity" class="quantity-label">Qty:</label>
                                                             <input type="number" id="Quantity" name="Quantity" min="1" max="${product.available_Quantity}" value="1" class="form-control quantity-input" />
                                                             <button type="submit" class="btn btn-sm btn-outline-secondary add-to-cart">Add to cart</button>
+                                                                     <button type="submit" class="btn btn-sm btn-outline-secondary add-to-WishList">Add to WishList</button>
                                                         </div>
                                                     </div>
                                                 </div>

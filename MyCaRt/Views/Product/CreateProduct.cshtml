@@ -6,7 +6,12 @@
 
 <h1>CreateProduct</h1>
 
-<h4>ProductModel</h4>
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
+    </div>
+}
 <hr />
 <div class="row">
     <div class="col-md-4">

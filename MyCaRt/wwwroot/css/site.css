@@ -61,3 +61,30 @@ body {
     content: "-";
     font-weight: bold;
 }
+
+
+.add-to-cart {
+    color: #6c757d; /* Default color for outline-secondary button */
+    border-color: #6c757d; /* Default border color for outline-secondary button */
+}
+
+.add-to-WishList {
+    color: #6c757d; /* Default color for outline-secondary button */
+    border-color: #6c757d; /* Default border color for outline-secondary button */
+}
+
+.add-to-cart:hover {
+    color: #fff !important;
+    background-color: #28a745 !important; /* Green background color on hover */
+    border-color: #28a745 !important; /* Green border color on hover */
+}
+
+.containermodel {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    min-width: 130vh;
+    padding: 25px;
+    background: #d6eef1;
+}

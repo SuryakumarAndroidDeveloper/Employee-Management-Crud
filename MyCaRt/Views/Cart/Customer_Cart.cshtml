@@ -1,0 +1,657 @@
+﻿@model IEnumerable<MyCaRt.Models.DisplayCartModel>
+
+<div class="form-group">
+    <label for="Customer_FName" class="control-label">Customer Name</label>
+    <select id="Customer_FName" name="Customer_FName" class="form-control" asp-items="@ViewBag.categoryData">
+        <option value="">Select Customer Name</option>
+    </select>
+</div>
+
+
+<div id="cart-container">
+    <!-- Cart data will be displayed here -->
+</div>
+
+<div id="cart-total">
+    
+</div>
+
+
+
+  <div id="cart-continue">
+
+    </div>
+
+<div id="customer-details-card" style="display: none;">
+    <!-- Customer details and cart data will be displayed here -->
+</div>
+
+<style>
+    .container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        min-width: 120vh;
+        padding: 25px;
+        background: #d6eef1;
+    }
+
+        .container form {
+            width: 900px;
+            margin-top:1px;
+            padding: 10px;
+            background: #fff;
+            box-shadow: 5px 5px 30px rgba(0, 0, 0, 0.2);
+        }
+
+            .container form .row {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 15px;
+            }
+
+                .container form .row .col {
+                    flex: 1 1 250px;
+                }
+
+    .col .title {
+        font-size: 20px;
+        color: rgb(237, 55, 23);
+        padding-bottom: 5px;
+    }
+
+    .col .inputBox {
+        margin: 15px 0;
+    }
+
+        .col .inputBox label {
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .col .inputBox input,
+        .col .inputBox select {
+            width: 100%;
+            border: 1px solid #ccc;
+            padding: 10px 15px;
+            font-size: 15px;
+        }
+
+            .col .inputBox input:focus,
+            .col .inputBox select:focus {
+                border: 1px solid #000;
+            }
+
+    .col .flex {
+        display: flex;
+        gap: 15px;
+    }
+
+        .col .flex .inputBox {
+            flex: 1 1;
+            margin-top: 5px;
+        }
+
+    .col .inputBox img {
+        height: 34px;
+        margin-top: 5px;
+        filter: drop-shadow(0 0 1px #000);
+    }
+
+    .container form .submit_btn {
+        width: 100%;
+        padding: 12px;
+        font-size: 17px;
+        background: rgb(1, 143, 34);
+        color: #fff;
+        margin-top: 5px;
+        cursor: pointer;
+        letter-spacing: 1px;
+    }
+
+        .container form .submit_btn:hover {
+            background: #3d17fb;
+        }
+
+    input::-webkit-inner-spin-button,
+    input::-webkit-outer-spin-button {
+        display: none;
+    }
+
+    .quantity-input {
+        width: 60px;
+        margin-right: 10px;
+    }
+</style>
+<div class="modal fade" id="payModal" tabindex="-1" aria-labelledby="payModalLabel" aria-hidden="true">
+    <div class="containermodel modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="payModalLabel">Payment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Payment form or information goes here -->
+                <p>Payment details...</p>
+                <div class="container">
+
+                    <form id="paymentForm">
+
+                        <div class="row">
+
+                            <div class="col">
+                                <h3 class="title">
+                                    Billing Address
+                                </h3>
+
+                                <div class="inputBox">
+                                    <label for="FullName">
+                                        Full Name:
+                                    </label>
+                                    <input type="text" id="FullName" name="FullName"
+                                           placeholder="Enter your full name"
+                                           required>
+                                </div>
+
+                                <div class="inputBox">
+                                    <label for="Email">
+                                        Email:
+                                    </label>
+                                    <input type="text" id="Email" name="Email"
+                                           placeholder="Enter email address"
+                                           required>
+                                </div>
+
+                                <div class="inputBox">
+                                    <label for="Address">
+                                        Address:
+                                    </label>
+                                    <input type="text" id="Address" name="Address"
+                                           placeholder="Enter address"
+                                           required>
+                                </div>
+
+                                <div class="inputBox">
+                                    <label for="City">
+                                        City:
+                                    </label>
+                                    <input type="text" id="City" name="City"
+                                           placeholder="Enter city"
+                                           required>
+                                </div>
+
+                                <div class="flex">
+
+                                    <div class="inputBox">
+                                        <label for="State">
+                                            State:
+                                        </label>
+                                        <input type="text" id="State" name="State"
+                                               placeholder="Enter state"
+                                               required>
+                                    </div>
+
+                                    <div class="inputBox">
+                                        <label for="ZipCode">
+                                            Zip Code:
+                                        </label>
+                                        <input type="number" id="ZipCode" name="ZipCode"
+                                               placeholder="123 456"
+                                               required>
+                                    </div>
+
+                                </div>
+
+                            </div>
+                            <div class="col">
+                                <h3 class="title">Payment</h3>
+
+                                <div class="inputBox">
+                                    <label for="name">
+                                        Card Accepted:
+                                    </label>
+                                    <img src="Image/card.png"
+                                         alt="credit/debit card image">
+                                </div>
+
+                                <div class="inputBox">
+                                    <label for="CardName">
+                                        Name On Card:
+                                    </label>
+                                    <input type="text" id="CardName" name="CardName"
+                                           placeholder="Enter card name"
+                                           required>
+                                </div>
+
+                                <div class="inputBox">
+                                    <label for="CardNumber">
+                                        Credit Card Number:
+                                    </label>
+                                    <input type="text" id="CardNumber" name="CardNumber"
+                                           placeholder="xxxx-xxxx-xxxx-1234"
+                                           maxlength="19" required>
+                                </div>
+
+                                <div class="inputBox">
+                                    <label for="ExpMonth">Exp Month:</label>
+                                    <select name="ExpMonth" id="ExpMonth" >
+                                        <option value="">Choose month</option>
+                                        <option value="January">January</option>
+                                        <option value="February">February</option>
+                                        <option value="March">March</option>
+                                        <option value="April">April</option>
+                                        <option value="May">May</option>
+                                        <option value="June">June</option>
+                                        <option value="July">July</option>
+                                        <option value="August">August</option>
+                                        <option value="September">September</option>
+                                        <option value="October">October</option>
+                                        <option value="November">November</option>
+                                        <option value="December">December</option>
+                                    </select>
+                                </div>
+
+
+                                <div class="flex">
+                                    <div class="inputBox">
+                                        <label for="ExpYear">Exp Year:</label>
+                                        <select name="ExpYear" id="ExpYear">
+                                            <option value="">Choose Year</option>
+                                            <option value="2023">2023</option>
+                                            <option value="2024">2024</option>
+                                            <option value="2025">2025</option>
+                                            <option value="2026">2026</option>
+                                            <option value="2027">2027</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="inputBox">
+                                        <label for="CVV">CVV</label>
+                                        <input type="number" id="CVV" name="CVV"
+                                               placeholder="1234" required>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <input id ="confirm-pay-btn" type="submit" value="Proceed to Checkout"
+                               class="submit_btn">
+                    </form>
+
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+    <script>
+
+
+        $(document).ready(function () {
+  
+
+           
+
+          $('#Customer_FName').change(function () {
+                var customerId = $(this).val();
+                var cartContainer = $('#cart-container');
+                var cartTotalContainer = $('#cart-total');
+                var cartContinueContainer = $('#cart-continue');
+                cartContainer.empty();
+                cartTotalContainer.empty();
+                cartContinueContainer.empty();
+                if (customerId) {
+                    $.ajax({
+                        type: 'GET',
+                        url: '/Cart/GetCartByCustomer',
+                        data: { Customer_Id: customerId },
+                        success: function (data) {
+                            console.log(data);
+                            if (data.length > 0) {
+                                var table = $('<table class="table table-bordered"><thead><tr><th>CartItem Id</th><th>Product Id</th><th>Product Name</th><th>Quantity</th><th>Price</th><th>Total</th><th>Action</th></tr></thead><tbody></tbody></table>');
+                                var tbody = table.find('tbody');
+                                var totalPrice = 0;
+
+                                $.each(data, function (index, item) {
+                                    var row = $('<tr></tr>');
+                                    var itemTotal = item.quantity * item.product_Price;
+                                    row.append('<td>' + item.cartItem_Id + '</td>');
+                                    row.append('<td>' + item.product_Id + '</td>');
+                                    row.append('<td>' + item.product_Name + '</td>');
+                                    row.append('<td><input type="number" class="quantity-input" data-cartitemid="' + item.cartItem_Id + '" value="' + item.quantity + '" min="1"></td>');
+                                    //row.append('<td>' + item.quantity + '</td>');
+                                    row.append('<td>' + item.product_Price + '</td>');
+                                    row.append('<td>' + itemTotal + '</td>');
+                                    row.append('<td><button class="btn btn-danger delete-btn" data-cartitemid="' + item.cartItem_Id + '"> Remove </button></td > ');
+                                    tbody.append(row);
+                                    totalPrice += itemTotal;
+                                });
+
+                                cartContainer.append(table);
+                                cartTotalContainer.append('<p>Total Price: ' + totalPrice.toFixed(2) + '</p>');
+                                cartContinueContainer.append('<button id="continue-btn" class="btn btn-primary">Continue</button>');
+
+                                $('.quantity-input').on('change', function () {
+                                    var newQuantity = $(this).val();
+                                    var cartItemId = $(this).data('cartitemid');
+                                    updateQuantity(cartItemId, newQuantity);
+                                });
+                                // Attach click event for delete button
+                                $('.delete-btn').on('click', function () {
+                                    var cartItemId = $(this).data('cartitemid');
+                                    deleteCartItem(cartItemId);
+                                });
+                                $('#continue-btn').on('click', function () {
+                                    var customerId = $('#Customer_FName').val();
+                                    var customerName = $('#Customer_FName option:selected').text();
+                                    var customerDetails = '<div class="card"><div class="card-body"><h5 class="card-title">Purchase Summary</h5><p class="card-text"><strong>Customer Name: </strong>' + customerName + '</p><p class="card-text"><strong>Customer ID: </strong>' + customerId + '</p><div id="customer-cart-container"></div></div></div>';
+
+                                    $('#customer-details-card').html(customerDetails).show();
+
+                                    $.ajax({
+                                        type: 'GET',
+                                        url: '/Cart/GetCartByCustomer',
+                                        data: { Customer_Id: customerId },
+                                        success: function (data) {
+                                            var cartTable = $('<table class="table table-bordered"><thead><tr><th>CartItem Id</th><th>Product Id</th><th>Product Name</th><th>Quantity</th><th>Price</th><th>Total</th></tr></thead><tbody></tbody></table>');
+                                            var cartTbody = cartTable.find('tbody');
+                                            var totalPrice = 0;
+
+                                            $.each(data, function (index, item) {
+                                                var row = $('<tr></tr>');
+                                                var itemTotal = item.quantity * item.product_Price;
+                                                row.append('<td>' + item.cartItem_Id + '</td>');
+                                                row.append('<td>' + item.product_Id + '</td>');
+                                                row.append('<td>' + item.product_Name + '</td>');
+                                                row.append('<td>' + item.quantity + '</td>');
+                                                row.append('<td>' + item.product_Price + '</td>');
+                                                row.append('<td>' + itemTotal + '</td>');
+
+                                                cartTbody.append(row);
+                                                // <button class="btn btn-danger delete-btn" data-cartitemid="' + item.cartItem_Id + '"> R </button>
+                                                totalPrice += itemTotal;
+                                            });
+
+                                            $('#customer-cart-container').html(cartTable);
+                                            $('#customer-cart-container').append(' <button id="pay-btn" class="btn btn-sm btn-outline-secondary add-to-cart" style="margin-left:580px"> PAY  ' + totalPrice.toFixed(2) + '</button>');
+                                            $('#pay-btn').on('click', function () {
+                                                $('#payModal').modal('show');
+                                            });
+                                        },
+                                        error: function () {
+                                            alert('Sorry No CartItem Found for you go and add product to cart .');
+                                        }
+                                    });
+                                });
+                            } else {
+                                cartContainer.append('<p>No items in cart for this customer.</p>');
+                            }
+                        },
+                        error: function () {
+                            alert('Sorry No CartItem Found for you go and add product to cart .'); // Fixed syntax error here
+                            cartContainer.append('<p>No items in cart for this customer.</p>');
+                            cartTotalContainer.empty();
+                            // cartContinueContainer.empty();
+                        }
+                    });
+                } else {
+                    cartContainer.empty();
+                    cartTotalContainer.empty();
+                    cartContinueContainer.empty();
+                }
+            });
+
+            $('#paymentForm').on('submit', function (e) {
+                e.preventDefault();
+                var formData = {
+                    customerId: $('#Customer_FName').val(),
+                    FullName: $('#FullName').val(),
+                    Email: $('#Email').val(),
+                    Address: $('#Address').val(),
+                    City: $('#City').val(),
+                    State: $('#State').val(),
+                    ZipCode: $('#ZipCode').val(),
+                    CardName: $('#CardName').val(),
+                    CardNumber: $('#CardNumber').val(),
+                    ExpMonth: $('#ExpMonth').val(),
+                    ExpYear: $('#ExpYear').val(),
+                    CVV: $('#CVV').val()
+                };
+                console.log(formData);
+                $.ajax({
+                    type: 'POST',
+                    url: '@Url.Action("StorePayment", "Payment")',
+                    data: JSON.stringify(formData),
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (response) {
+                        alert('payment placed successfully!');
+                        // Optionally, you can redirect to another page
+                        $('#payModal').modal('hide');
+
+                        //$('#pay-btn').text('ORDER').removeClass('btn-outline-secondary').addClass(' btn-sm btn-success')
+
+                        // Change the PAY button to ORDER button after the payment process is complete
+                        var payButton = $('#pay-btn');
+                        payButton.text('ORDER');
+                        payButton.off('click'); // Remove the previous click event
+
+                        // Attach a new click event for the ORDER button
+                        payButton.on('click', function () {
+                            placeOrder();
+                        });
+
+
+                    },
+                    error: function (xhr, status, error) {
+                        alert('Failed to payment: ' + xhr.responseText);
+                    }
+                });
+                    
+        });
+
+            $('#confirm-pay-btn').on('click', function (event) {
+
+                event.preventDefault(); // Prevent form submission
+
+                // Perform field validation
+                var isValid = validatePaymentForm();
+
+                if (isValid) {
+                    // Trigger the submission of the payment form
+                    $('#paymentForm').submit();
+
+                  
+
+                 
+
+                } else {
+                    // Show error messages for invalid fields
+                    showValidationErrors();
+                }
+
+
+            });
+
+
+            // Function to validate the payment form fields
+            function validatePaymentForm() {
+                var isValid = true;
+
+                // Clear any previous error styles
+                $('#payModal input, #payModal select').removeClass('is-invalid');
+
+                // Validate billing address fields
+                $('#payModal input[type="text"]').each(function () {
+                    if ($(this).val().trim() === '') {
+                        isValid = false;
+                        $(this).addClass('is-invalid');
+                    }
+                });
+
+                // Validate credit card fields
+                $('#payModal input[type="text"], #payModal select').each(function () {
+                    if ($(this).val() === '') {
+                        isValid = false;
+                        $(this).addClass('is-invalid');
+                    }
+                });
+
+                // Validate Cardnumber field
+                var cardnumber = $('#CardNumber').val();
+                if (cardnumber === '' || cardnumber.length !== 16) {
+                    isValid = false;
+                    $('#CardNumber').addClass('is-invalid');
+                }
+
+
+                // Validate CVV field
+                var cvv = $('#CVV').val();
+                if (cvv === '' || isNaN(cvv) || cvv.length !== 3) {
+                    isValid = false;
+                    $('#CVV').addClass('is-invalid');
+                }
+
+                // Validate ExpYear field
+                var expYear = $('#ExpYear').val();
+                if (expYear === '' || isNaN(expYear)) {
+                    isValid = false;
+                    $('#ExpYear').addClass('is-invalid');
+                }
+
+                // Validate ExpMonth field
+                var expMonth = $('#ExpMonth').val();
+                if (expMonth === '') {
+                    isValid = false;
+                    $('#ExpMonth').addClass('is-invalid');
+                }
+
+                return isValid;
+            }
+
+            // Function to show validation error messages
+            function showValidationErrors() {
+                // Clear any previous error messages
+                $('.invalid-feedback').remove();
+
+                // Billing address error messages
+                $('#payModal input[type="text"]').each(function () {
+                    if ($(this).val().trim() === '') {
+                        $(this).after('<div class="invalid-feedback">This field is required.</div>');
+                    }
+                });
+
+                // Credit card error messages
+                $('#payModal select').each(function () {
+                    if ($(this).val() === '') {
+                        $(this).after('<div class="invalid-feedback">This field is required.</div>');
+                    }
+                });
+
+                // Cardnumber error message
+                var cardnumber = $('#CardNumber').val();
+                if (cardnumber === '' || cardnumber.length !== 16) {
+                    $('#CardNumber').after('<div class="invalid-feedback">Please enter a valid Card number.</div>');
+                }
+
+                // CVV error message
+                var cvv = $('#CVV').val();
+                if (cvv === '' || isNaN(cvv) || cvv.length !== 3) {
+                    $('#CVV').after('<div class="invalid-feedback">Please enter a valid CVV number.</div>');
+                }
+
+                // ExpYear error message
+                var expYear = $('#ExpYear').val();
+                if (expYear === '' || isNaN(expYear)) {
+                    $('#ExpYear').after('<div class="invalid-feedback">Please enter a valid ExpYear.</div>');
+                }
+
+                // ExpMonth error message
+                var expMonth = $('#ExpMonth').val();
+                if (expMonth === '') {
+                    $('#ExpMonth').after('<div class="invalid-feedback">Please select an ExpMonth.</div>');
+                }
+            }
+
+            function placeOrder() {
+                var customerId = $('#Customer_FName').val();
+                // Gather product IDs, quantities, and total price from the cart table
+                var products = [];
+
+                $('#cart-container table tbody tr').each(function () {
+                    var productId = $(this).find('td:nth-child(2)').text();
+                    var quantity = $(this).find('.quantity-input').val();
+                    var totalPriceText = $('#cart-total').text();
+                    var totalPrice = parseFloat(totalPriceText.replace(/[^0-9.-]+/g, ""));
+                    products.push({ Product_Id: productId, Quantity: quantity, TotalPrice: totalPrice });
+                });
+               // var totalPriceText = $('#cart-total').text();
+                //var totalPrice = parseFloat(totalPriceText.replace(/[^0-9.-]+/g, ""));
+               // products.push({ TotalPrice: totalPrice })
+
+
+                var orderData = {
+                    Customer_Id: customerId,
+                    OrderProducts: products
+                    //TotalPrice: totalPrice
+                };
+
+                console.log(orderData);
+                $.ajax({
+                    type: 'POST',
+                    url: '@Url.Action("PlaceOrder", "Order")',
+                    contentType: 'application/json', // Set the Content-Type header
+                    data: JSON.stringify(orderData),
+                    success: function (response) {
+                        alert('Order placed successfully!');
+                        window.location.href = '@Url.Action("ListOfCustomers", "Customer")';
+                        // Additional actions like redirecting to another page or refreshing the cart can be done here
+                    },
+                    error: function () {
+                        alert('Failed to place the order.');
+                    }
+                });
+            }
+
+            function updateQuantity(cartItemId, newQuantity) {
+                $.ajax({
+                    type: 'POST',
+                    url: '/Cart/UpdateCartItemQuantity',
+                    data: { cartItemId: cartItemId, newQuantity: newQuantity },
+                    success: function (response) {
+                        console.log(response);
+                        // Refresh cart data after update
+                        $('#Customer_FName').trigger('change');
+                    },
+                    error: function () {
+                        alert('Failed to update quantity.');
+                    }
+                });
+            }
+
+            function deleteCartItem(cartItemId) {
+                $.ajax({
+                    type: 'POST',
+                    url: '/Cart/DeleteCartItem',
+                    data: { cartItemId: cartItemId },
+                    success: function (response) {
+                        console.log(response);
+                        // Refresh cart data after delete
+                        $('#Customer_FName').trigger('change');
+                    },
+                    error: function () {
+                        alert('Failed to delete item.');
+                    }
+                });
+            }
+        });
+    </script>
+
+}

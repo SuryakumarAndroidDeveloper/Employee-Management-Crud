@@ -1,0 +1,129 @@
+﻿@model IEnumerable<MyCaRt.Models.MyWishlistModel>
+
+@{
+    ViewData["Title"] = "MyWishList";
+}
+
+<h1>My WishList</h1>
+
+@if (!Model.Any())
+{
+    <p>No WishList You Added.</p>
+}
+else
+{
+    var groupedOrders = Model.GroupBy(o => o.Customer_FName).ToList();
+    foreach (var orderGroup in groupedOrders)
+    {
+        var firstOrderItem = orderGroup.First();
+        <div class="card mb-3" id="product-container">
+            <div class=" card-header">
+                Customer Name:<span id="customer-name">@firstOrderItem.Customer_FName</span>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    @foreach (var item in orderGroup)
+                    {
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Product Name: @item.Product_Name</h5>
+                                    <p class="card-text"><strong>Category:</strong> @item.Product_Category</p>
+                                    <p class="card-text"><strong>Product Price:</strong> @item.Product_Price</p>
+                                    <p class="card-text"><strong>Product Description:</strong> @item.Product_Description</p>
+                                    <p class="card-text"><strong>Available Quantity:</strong> @item.Available_Quantity</p>
+                                    <input type="hidden" id="Product_Id" name="Product_Id" value="@item.Product_Id" />
+                                    <input type="hidden" id="WishList_Id" name="WishList_Id" value="@item.WishList_Id" />
+                                    <input type="hidden" id="Customer_Id" name="Customer_Id" value="@item.Customer_Id" />
+                                        <label for="Quantity" class="quantity-label">Qty:</label>
+                                        <input type="number" id="Quantity" name="Quantity" min="1" max="@item.Available_Quantity" value="1" class="form-control quantity-input" />&nbsp;&nbsp;&nbsp;
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary add-to-cart">Add to cart</button>
+                                    
+                                    
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+}
+
+<style>
+    .card {
+        margin-top: 20px;
+    }
+
+    .card-header {
+        background-color: #007bff;
+        color: white;
+    }
+
+    .card-title {
+        margin-bottom: 15px;
+    }
+
+    .form-group {
+        display: flex;
+        align-items: center;
+       
+    }
+
+    .quantity-label {
+        margin-right: 10px; /* Adjust as needed */
+    }
+</style>
+
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            console.log("Document is ready.");
+
+            $('#product-container').on('click', '.add-to-cart', function (event) {
+                event.preventDefault(); // Prevent the default form submission
+                console.log("Add to cart button clicked.");
+                var card = $(this).closest('.card');
+                var productId = card.find('input[name="Product_Id"]').val();
+                var quantity = card.find('input[name="Quantity"]').val();
+                var customerName = card.find('input[name="Customer_Id"]').val();
+
+                if (!customerName) {
+                    alert('Please select a customer.');
+                    return;
+                }
+
+                var cartData = {
+                    Customer_FName: customerName,
+                    Product_Id: productId,
+                    Quantity: quantity
+                };
+                console.log("Sending AJAX request with cart data:", cartData);
+
+                $.ajax({
+                    type: 'POST',
+                    url: '@Url.Action("AddToCart", "Cart")',
+                    data: cartData,
+                    success: function (response) {
+                        console.log("AJAX response received:", response);
+                        if (response.success) {
+                            alert('Cart added successfully!');
+                            window.location.href = '@Url.Action("ListOfFullProduct", "Product")';
+                        } else {
+                            alert('Failed to add cart.');
+                        }
+                    },
+                    error: function () {
+                        alert('Error in adding cart.');
+                    }
+                });
+            });
+
+        });
+
+    </script>
+
+}

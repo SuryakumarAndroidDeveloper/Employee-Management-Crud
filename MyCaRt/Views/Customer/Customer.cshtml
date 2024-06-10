@@ -11,9 +11,16 @@
 <h1>Create Customer</h1>
 
 <h4>Customer are Gold</h4>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
+    </div>
+}
 <hr />
 <p>
-    <a asp-controller="ProductCategory" asp-action="ListOfCutomers">ListOfCutomers</a>
+    <a asp-controller="Customer" asp-action="ListOfCustomers">ListOfCutomers</a>
 </p>
 <div class="row">
     <div class="col-md-4">
