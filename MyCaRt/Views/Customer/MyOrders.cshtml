@@ -13,12 +13,24 @@
 else
 {
     var groupedOrders = Model.GroupBy(o => o.OrderId).ToList();
+    int orderCounter = 0;
     foreach (var orderGroup in groupedOrders)
     {
         var firstOrderItem = orderGroup.First();
+        orderCounter++;
+        string orderLabel = orderCounter switch
+        {
+            1 => "First Order",
+            2 => "Second Order",
+            3 => "Third Order",
+            4 => "Fourth Order",
+            _ => $"Order {orderCounter}"
+        };
+   
         <div class="card mb-3">
             <div class="card-header">
-                Order ID: @firstOrderItem.OrderId
+                <p hidden> Order ID: @firstOrderItem.OrderId</p>
+                @orderLabel
             </div>
             <div class="card-body">
                 <h5 class="card-title">Customer: @firstOrderItem.Customer_FName</h5>
