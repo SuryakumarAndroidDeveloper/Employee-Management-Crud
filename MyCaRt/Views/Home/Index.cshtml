@@ -6,3 +6,22 @@
     <h1 class="display-4">Welcome</h1>
     <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
 </div>
+<div class="maincontainer"> 
+    <div class="containerindex">
+        <button class="glow-on-hover" onclick="navigateTo('@Url.Action("CreateProductCategory", "ProductCategory")')">Create Product Category</button>
+        <button class="glow-on-hover" onclick="navigateTo('@Url.Action("CreateProduct", "Product")')">Create Product</button>
+        <button class="glow-on-hover" onclick="navigateTo('@Url.Action("Customer", "Customer")')">Create Users</button>
+        <button class="glow-on-hover" onclick="navigateTo('@Url.Action("ListOfCustomers", "Customer")')">Display Customers</button>
+        <button class="glow-on-hover" onclick="navigateTo('@Url.Action("ListOfFullProduct", "Product")')">Search Products</button><br /><br />
+        <button class="glow-on-hover" onclick="navigateTo('@Url.Action("Customer_Cart", "Cart")')">View Cart Items</button>
+
+        <button class="glow-on-hover" onclick="navigateTo('@Url.Action("Login_Register", "Login")')">Login/SignUp</button>
+
+    </div>
+</div>
+
+<script>
+    function navigateTo(url) {
+        window.location.href = url;
+    }
+</script>
