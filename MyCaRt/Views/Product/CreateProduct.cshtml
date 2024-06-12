@@ -33,8 +33,9 @@
             </div>
       
             <div class="form-group">
-                    <label style="margin-right:1000px" asp-for="Product_Code" class="control-label"></label>
+                <label style="margin-right:1000px" asp-for="Product_Code" class="control-label"></label>
                 <input asp-for="Product_Code" class="form-control" />
+                <span id="productCodeError" class="text-danger" style="display:none;">ProductCode is already exists.</span>
                 <span asp-validation-for="Product_Code" class="text-danger"></span>
             </div>
             <div class="form-group">
@@ -58,10 +59,10 @@
                 <span asp-validation-for="Available_Quantity" class="text-danger"></span>
             </div><br />
             <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
+                    <input type="submit" id="submitButton" value="Create" class="btn btn-primary" />
             </div>
         </form>
-        <br />
+        <br/>
             <div>
                 <a asp-action="Index">Back to List</a>
             </div>
@@ -73,4 +74,36 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <script>
+        $(document).ready(function () {
+            $("#Product_Code").on("blur", function () {
+                var productCode = $(this).val();
+                if (productCode) {
+                    $.ajax({
+                        url: '@Url.Action("IsProduct_CodeAvailable", "Product")',
+                        type: 'POST',
+                        contentType: "application/json",
+                        data: JSON.stringify({ ProductCode: productCode }),// Send data as form data, not JSON
+                        success: function (data) {
+                            if (data.exists) {
+                                $("#productCodeError").show();
+                                $("#submitButton").prop("disabled", true);
+                            } else {
+                                $("#productCodeError").hide();
+                                $("#submitButton").prop("disabled", false);
+                            }
+                        },
+                        error: function () {
+                            $("#productCodeError").text("Error checking Product Code. Please try again.").show();
+                            $("#submitButton").prop("disabled", true);
+                        }
+                    });
+                } else {
+                    $("#productCodeError").hide();
+                    $("#submitButton").prop("disabled", false);
+                }
+            });
+        });
+    </script>
 }

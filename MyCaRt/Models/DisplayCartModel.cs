@@ -13,6 +13,6 @@
         public int? Quantity { get; set; }
 
 
-        public int? Product_Price { get; set; }
+        public decimal? Product_Price { get; set; }
     }
 }

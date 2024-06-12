@@ -194,3 +194,23 @@ footer {
     position: relative;
     width: 100%;
 }
+
+.quantity-controls {
+    display: flex;
+    align-items: center;
+}
+
+    .quantity-controls button {
+        width: 30px;
+        height: 30px;
+        border: 1px solid #ccc;
+        border-radius: 50%;
+        background-color: #fff;
+        font-size: 18px;
+        cursor: pointer;
+        margin: 0 5px;
+    }
+
+        .quantity-controls button:hover {
+            background-color: #f0f0f0;
+        }

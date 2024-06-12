@@ -27,11 +27,12 @@
             <div class="form-group">
                 <label style="margin-right:1000px" asp-for="Category_Name" class="control-label"></label>
                 <input asp-for="Category_Name" class="form-control" />
+             <span id="categoryNameError" class="text-danger" style="display:none;">Category is already exists.</span>
                 <span asp-validation-for="Category_Name" class="text-danger"></span>
             </div>
             <br />
             <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
+                    <input type="submit" id="submitButton" value="Create" class="btn btn-primary" />
             </div>
         </form>
         </div>
@@ -42,4 +43,37 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $("#Category_Name").on("blur", function () {
+                var categoryName = $(this).val();
+                if (categoryName) {
+                    $.ajax({
+                        url: '@Url.Action("IsCategory_NameAvailable", "ProductCategory")',
+                        type: 'POST',
+                        contentType: "application/json",
+                        data: JSON.stringify({ CategoryName: categoryName }),// Send data as form data, not JSON
+                        success: function (data) {
+                            if (data.exists) {
+                                $("#categoryNameError").show();
+                                $("#submitButton").prop("disabled", true);
+                            } else {
+                                $("#categoryNameError").hide();
+                                $("#submitButton").prop("disabled", false);
+                            }
+                        },
+                        error: function () {
+                            $("#categoryNameError").text("Error checking category name. Please try again.").show();
+                            $("#submitButton").prop("disabled", true);
+                        }
+                    });
+                } else {
+                    $("#categoryNameError").hide();
+                    $("#submitButton").prop("disabled", false);
+                }
+            });
+        });
+
+    </script>
 }

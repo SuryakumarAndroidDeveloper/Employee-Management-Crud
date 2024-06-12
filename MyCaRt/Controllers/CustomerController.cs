@@ -3,6 +3,7 @@ using MyCaRt.Models;
 using Newtonsoft.Json;
 using System.Net;
 using System.Text;
+using static MyCaRt.Controllers.ProductController;
 
 namespace MyCaRt.Controllers
 {
@@ -295,8 +296,104 @@ namespace MyCaRt.Controllers
 
             return View(wishListData);
         }
+        //validate customer firstname
+        [HttpPost]
+        public async Task<IActionResult> IsCustomer_FNameAvailable([FromBody] CustomerNamesRequest request)
+        {
+            if (string.IsNullOrEmpty(request.Customer_FName))
+            {
+                return Json(new { Exists = false });
+            }
 
+            var json = JsonConvert.SerializeObject(new { Customer_FName = request.Customer_FName });
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
 
+            HttpResponseMessage response = await _httpClient.PostAsync($"{_httpClient.BaseAddress}/Customer/IsCustomer_FNameAvailable", content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadAsStringAsync();
+                var existsResponse = JsonConvert.DeserializeObject<ExistsResponse>(result);
+                return Json(new { Exists = existsResponse.Exists });
+            }
+            else
+            {
+                return Json(new { Exists = false });
+            }
+        }
+
+        public class CustomerNamesRequest
+        {
+            public string Customer_FName { get; set; }
+        }
+
+        public class ExistsResponse
+        {
+            public bool Exists { get; set; }
+        }
+
+        //validate email
+        [HttpPost]
+        public async Task<IActionResult> IsEmailAvailable([FromBody] EmailRequest request)
+        {
+            if (string.IsNullOrEmpty(request.Email))
+            {
+                return Json(new { Exists = false });
+            }
+
+            var json = JsonConvert.SerializeObject(new { email = request.Email });
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            HttpResponseMessage response = await _httpClient.PostAsync($"{_httpClient.BaseAddress}/Customer/IsEmailAvailable", content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadAsStringAsync();
+                var existsResponse = JsonConvert.DeserializeObject<ExistsResponse>(result);
+                return Json(new { Exists = existsResponse.Exists });
+            }
+            else
+            {
+                return Json(new { Exists = false });
+            }
+        }
+        public class EmailRequest
+        {
+            public string Email{ get; set; }
+        }
+
+       
+        //validate mobile
+        [HttpPost]
+        public async Task<IActionResult> IsMobileAvailable([FromBody] MobileRequest request)
+        {
+            if (string.IsNullOrEmpty(request.Mobile))
+            {
+                return Json(new { Exists = false });
+            }
+
+            var json = JsonConvert.SerializeObject(new { mobile = request.Mobile });
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            HttpResponseMessage response = await _httpClient.PostAsync($"{_httpClient.BaseAddress}/Customer/IsMobileAvailable", content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadAsStringAsync();
+                var existsResponse = JsonConvert.DeserializeObject<ExistsResponse>(result);
+                return Json(new { Exists = existsResponse.Exists });
+            }
+            else
+            {
+                return Json(new { Exists = false });
+            }
+        }
+        public class MobileRequest
+        {
+            public string Mobile { get; set; }
+        }
+
+   
 
     }
 }

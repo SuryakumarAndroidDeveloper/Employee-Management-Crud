@@ -101,7 +101,37 @@
                             <p class="card-text"><strong>Price:</strong> @Html.DisplayFor(modelItem => item.Product_Price)</p>
                             <p class="card-text"><strong>Description:</strong> @Html.DisplayFor(modelItem => item.Product_Description)</p>
                             <p class="card-text"><strong>Available Quantity:</strong> @Html.DisplayFor(modelItem => item.Available_Quantity)</p>
-                            <div class="d-flex justify-content-between align-items-center">
+                            @if (item.Available_Quantity > 0)
+                            {
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="btn-group">
+                                        <input type="hidden" id="Product_Id" name="Product_Id" value="@item.Product_Id" />
+                                        <label for="Quantity" class="quantity-label">Qty:</label>
+                                        <div class="quantity-controls">
+                                            <button class="quantity-decrement">-</button>
+                                            <input type="number" id="Quantity" name="Quantity" min="1" max="@item.Available_Quantity" value="1" class="form-control quantity-input" readonly style="pointer-events: none;" />
+                                            <button class="quantity-increment">+</button>
+                                        </div>
+                                     @*    <input type="number" id="Quantity" name="Quantity" min="1" max="@item.Available_Quantity" value="1"
+                                        class="form-control quantity-input" readonly style="pointer-events: none;" /> *@
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary add-to-cart">Add to cart</button>
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary add-to-WishList">Add to WishList</button>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="btn-group">
+                                        <input type="hidden" id="Product_Id" name="Product_Id" value="@item.Product_Id" />
+                                        <label for="Quantity" class="quantity-label">Qty:</label>
+                                        <input type="number" id="Quantity" name="Quantity" min="0" max="@item.Available_Quantity" value="0" class="form-control quantity-input" disabled/>
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary add-to-cart" hidden>Add to cart</button>
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary add-to-WishList">Add to WishList</button>
+                                    </div>
+                                </div>
+                            }
+@*                             <div class="d-flex justify-content-between align-items-center">
                                 <div class="btn-group">
                                     <input type="hidden" id="Product_Id" name="Product_Id" value="@item.Product_Id" />
                                     <label for="Quantity" class="quantity-label">Qty:</label>
@@ -109,7 +139,7 @@
                                     <button type="submit" class="btn btn-sm btn-outline-secondary add-to-cart">Add to cart</button>
                                     <button type="submit" class="btn btn-sm btn-outline-secondary add-to-WishList">Add to WishList</button>
                                 </div>
-                            </div>
+                            </div> *@
                         </div>
                     </div>
                 </div>
@@ -124,6 +154,28 @@
     <script>
         $(document).ready(function () {
             console.log("Document is ready.");
+            // Increment quantity
+            $('#product-container').on('click', '.quantity-increment', function (event) {
+                event.preventDefault(); // Prevent the default behavior of the button
+                var quantityInput = $(this).siblings('.quantity-input');
+                var currentValue = parseInt(quantityInput.val());
+                var maxQuantity = parseInt(quantityInput.attr('max'));
+
+                if (currentValue < maxQuantity) {
+                    quantityInput.val(currentValue + 1);
+                }
+            });
+
+            // Decrement quantity
+            $('#product-container').on('click', '.quantity-decrement', function (event) {
+                event.preventDefault(); // Prevent the default behavior of the button
+                var quantityInput = $(this).siblings('.quantity-input');
+                var currentValue = parseInt(quantityInput.val());
+
+                if (currentValue > 1) {
+                    quantityInput.val(currentValue - 1);
+                }
+            });
 
             $('#product-container').on('click', '.add-to-cart', function (event) {
                 event.preventDefault(); // Prevent the default form submission
@@ -153,7 +205,7 @@
                         console.log("AJAX response received:", response);
                         if (response.success) {
                             alert('Cart added successfully!');
-                            window.location.href = '@Url.Action("ListOfFullProduct", "Product")';
+                            //window.location.href = '@Url.Action("ListOfFullProduct", "Product")';
                         } else {
                             alert('Failed to add cart.' );
                         }
@@ -250,18 +302,22 @@
                                                     <p class="card-text"><strong>Category:</strong> ${product.product_Category}</p>
                                                     <p class="card-text"><strong>Code:</strong> ${product.product_Code}</p>
                                                     <p class="card-text"><strong>Price:</strong> ${product.product_Price}</p>
-                                                    <p class="card-text"><strong>Description:</strong> ${product.product_Description}</p>
+                                                    <p class="card-text"><strong>Description:</strong> ${product.product_Description}</p>                                                  
                                                     <p class="card-text"><strong>Available Quantity:</strong> ${product.available_Quantity}</p>
-                                                    <div class="d-flex justify-content-between align-items-center">
-                                                        <div class="btn-group">
-                                                            <input type="hidden" id="Product_Id" name="Product_Id" value="${product.product_Id}" />
-                                                            <label for="Quantity" class="quantity-label">Qty:</label>
-                                                            <input type="number" id="Quantity" name="Quantity" min="1" max="${product.available_Quantity}" value="1" class="form-control quantity-input" />
-                                                            <button type="submit" class="btn btn-sm btn-outline-secondary add-to-cart">Add to cart</button>
-                                                                     <button type="submit" class="btn btn-sm btn-outline-secondary add-to-WishList">Add to WishList</button>
-                                                        </div>
-                                                    </div>
+                                                 <div class="d-flex justify-content-between align-items-center">
+                                                  <div class="btn-group">
+                                                                  <input type="hidden" id="Product_Id" name="Product_Id" value="${product.product_Id}" />
+                                                <label for="Quantity" class="quantity-label">Qty:</label>
+                                                   <div class="quantity-controls">
+                                                         <button class="quantity-decrement">-</button>
+                                                                 <input type="number" name="Quantity" min="1" max="${product.available_Quantity}" value="1" class="form-control quantity-input" readonly style="pointer-events: none;" />
+                                                         <button class="quantity-increment">+</button>
+                                                   </div>
+                                                   <button type="submit" class="btn btn-sm btn-outline-secondary add-to-cart">Add to cart</button>
+                                                   <button type="submit" class="btn btn-sm btn-outline-secondary add-to-WishList">Add to WishList</button>
                                                 </div>
+                                                         </div>
+                                                                  </div>
                                             </div>
                                         </div>`;
                             row.append(productHtml);

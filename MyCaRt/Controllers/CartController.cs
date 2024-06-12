@@ -79,6 +79,7 @@ namespace MyCaRt.Controllers
 
                     if (response.IsSuccessStatusCode)
                     {
+
                         return Json(new { success = true });
                         //return RedirectToAction("ListOfFullProduct");
                     }

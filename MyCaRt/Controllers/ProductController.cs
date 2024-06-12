@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using MyCaRt.Models;
 using Newtonsoft.Json;
 using System.Text;
+using static MyCaRt.Controllers.ProductCategoryController;
 
 namespace MyCaRt.Controllers
 {
@@ -65,6 +66,22 @@ namespace MyCaRt.Controllers
             else
             {
                 // Handle error response
+                List<ProductCategoryModel> categoryData = new List<ProductCategoryModel>();
+
+                HttpResponseMessage response1 = await _httpClient.GetAsync(_httpClient.BaseAddress + "/ProductCategory/GetProductCategory");
+
+                if (response1.IsSuccessStatusCode)
+                {
+                    string data = await response1.Content.ReadAsStringAsync();
+                    categoryData = JsonConvert.DeserializeObject<List<ProductCategoryModel>>(data);
+                }
+                else
+                {
+                    // Handle the error accordingly
+                    return NotFound();
+                }
+
+                ViewBag.categoryData = new SelectList(categoryData, "Category_Id", "Category_Name");
                 ModelState.AddModelError(string.Empty, "Server error. Please contact suryakumar.");
                 return View(product); // Return the view with the form and model to show errors
             }
@@ -167,7 +184,42 @@ namespace MyCaRt.Controllers
             return Json(new { success = true, products });
         }
 
+        //validate the product code
 
+        [HttpPost]
+        public async Task<IActionResult> IsProduct_CodeAvailable([FromBody] ProductCodeRequest request)
+        {
+            if (string.IsNullOrEmpty(request.ProductCode))
+            {
+                return Json(new { Exists = false });
+            }
+
+            var json = JsonConvert.SerializeObject(new { productCode = request.ProductCode });
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            HttpResponseMessage response = await _httpClient.PostAsync($"{_httpClient.BaseAddress}/Product/IsProduct_CodeAvailable", content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadAsStringAsync();
+                var existsResponse = JsonConvert.DeserializeObject<ExistsResponse>(result);
+                return Json(new { Exists = existsResponse.Exists });
+            }
+            else
+            {
+                return Json(new { Exists = false });
+            }
+        }
+
+        public class ProductCodeRequest
+        {
+            public string ProductCode { get; set; }
+        }
+
+        public class ExistsResponse
+        {
+            public bool Exists { get; set; }
+        }
 
     }
 }

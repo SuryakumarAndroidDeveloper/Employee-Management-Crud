@@ -296,8 +296,42 @@
 
 
         $(document).ready(function () {
-  
+            // Function to update the total price
+            function updateTotalPrice() {
+                var totalPrice = 0;
+                $('#cart-container table tbody tr').each(function () {
+                    var price = parseFloat($(this).find('td:nth-child(5)').text());
+                    var quantity = parseInt($(this).find('.quantity-input').val());
+                    var itemTotal = price * quantity;
+                    totalPrice += itemTotal;
+                    $(this).find('td:nth-child(6)').text(itemTotal.toFixed(2)); // Update the total for this item
+                });
+                $('#cart-total').text('Total Price: ' + totalPrice.toFixed(2));
+            }
+            // Increment quantity
+            $('#cart-container').on('click', '.quantity-increment', function (event) {
+                event.preventDefault(); // Prevent the default behavior of the button
+                var quantityInput = $(this).closest('tr').find('.quantity-input');
+                var currentValue = parseInt(quantityInput.val());
+                var maxQuantity = 100;
+                //var maxQuantity = parseInt(quantityInput.attr('max'));
+                if (currentValue < maxQuantity) {
+                    var newValue = currentValue + 1;
+                    quantityInput.val(newValue).trigger('change');
+                }
+            });
 
+            // Decrement quantity
+            $('#cart-container').on('click', '.quantity-decrement', function (event) {
+                event.preventDefault(); // Prevent the default behavior of the button
+                var quantityInput = $(this).closest('tr').find('.quantity-input');
+                var currentValue = parseInt(quantityInput.val());
+
+                if (currentValue > 1) {
+                    var newValue = currentValue - 1;
+                    quantityInput.val(newValue).trigger('change');
+                }
+            });
            
 
           $('#Customer_FName').change(function () {
@@ -326,7 +360,13 @@
                                     row.append('<td>' + item.cartItem_Id + '</td>');
                                     row.append('<td>' + item.product_Id + '</td>');
                                     row.append('<td>' + item.product_Name + '</td>');
-                                    row.append('<td><input type="number" class="quantity-input" data-cartitemid="' + item.cartItem_Id + '" value="' + item.quantity + '" min="1"></td>');
+                                    row.append('<td><div class="quantity-controls">' +
+                                        '<button class="quantity-decrement">-</button>' +
+                                        '<input type="number" min="1"  data-cartitemid="' + item.cartItem_Id + '" value="' + item.quantity + '" class="quantity-input" readonly style="pointer-events: none;" />' +
+                                        '<button class="quantity-increment">+</button>' +
+                                        '</div></td>');
+
+                                   // row.append('<td><input type="number" class="quantity-input" data-cartitemid="' + item.cartItem_Id + '" value="' + item.quantity + '" min="1"></td>');
                                     //row.append('<td>' + item.quantity + '</td>');
                                     row.append('<td>' + item.product_Price + '</td>');
                                     row.append('<td>' + itemTotal + '</td>');
@@ -339,11 +379,20 @@
                                 cartTotalContainer.append('<p>Total Price: ' + totalPrice.toFixed(2) + '</p>');
                                 cartContinueContainer.append('<button id="continue-btn" class="btn btn-primary">Continue</button>');
 
-                                $('.quantity-input').on('change', function () {
+                                // Call updateTotalPrice to ensure the total is correct initially
+                                updateTotalPrice();
+
+                                // Event delegation for quantity input change
+                                $('#cart-container').on('change', '.quantity-input', function () {
                                     var newQuantity = $(this).val();
                                     var cartItemId = $(this).data('cartitemid');
                                     updateQuantity(cartItemId, newQuantity);
                                 });
+                               // $('.quantity-input').on('change', function () {
+                                //    var newQuantity = $(this).val();
+                                  //  var cartItemId = $(this).data('cartitemid');
+                                  //  updateQuantity(cartItemId, newQuantity);
+                                //});
                                 // Attach click event for delete button
                                 $('.delete-btn').on('click', function () {
                                     var cartItemId = $(this).data('cartitemid');
@@ -352,7 +401,7 @@
                                 $('#continue-btn').on('click', function () {
                                     var customerId = $('#Customer_FName').val();
                                     var customerName = $('#Customer_FName option:selected').text();
-                                    var customerDetails = '<div class="card"><div class="card-body"><h5 class="card-title">Purchase Summary</h5><p class="card-text"><strong>Customer Name: </strong>' + customerName + '</p><p class="card-text"><strong>Customer ID: </strong>' + customerId + '</p><div id="customer-cart-container"></div></div></div>';
+                                    var customerDetails = '<div class="card"><div class="card-body"><h5 class="card-title">Purchase Summary</h5><p class="card-text"><strong>Customer Name: </strong>' + customerName + '</p><p class="card-text" hidden><strong>Customer ID: </strong>' + customerId + '</p><div id="customer-cart-container"></div></div></div>';
 
                                     $('#customer-details-card').html(customerDetails).show();
 
@@ -628,7 +677,8 @@
                     success: function (response) {
                         console.log(response);
                         // Refresh cart data after update
-                        $('#Customer_FName').trigger('change');
+                       // $('#Customer_FName').trigger('change');
+                        updateTotalPrice();
                     },
                     error: function () {
                         alert('Failed to update quantity.');

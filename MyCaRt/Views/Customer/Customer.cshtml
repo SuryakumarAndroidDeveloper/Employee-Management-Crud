@@ -29,8 +29,9 @@
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
      
             <div class="form-group">
-                    <label style="margin-right:1000px" asp-for="Customer_FName" class="control-label"></label>
+                <label style="margin-right:1000px" asp-for="Customer_FName" class="control-label"></label>
                 <input asp-for="Customer_FName" class="form-control" />
+                    <span id="customerFNameError" class="text-danger" style="display:none;">CustomerName is already exists.</span>
                 <span asp-validation-for="Customer_FName" class="text-danger"></span>
             </div>
             <div class="form-group">
@@ -50,11 +51,13 @@
             <div class="form-group">
                     <label style="margin-right:1000px" asp-for="Customer_Email" class="control-label"></label>
                 <input asp-for="Customer_Email" class="form-control" />
+                    <span id="emailError" class="text-danger" style="display:none;">Email is already exists.</span>
                 <span asp-validation-for="Customer_Email" class="text-danger"></span>
             </div>
             <div class="form-group">
                     <label style="margin-right:1000px" asp-for="Customer_Mobile" class="control-label"></label>
                 <input asp-for="Customer_Mobile" class="form-control" />
+                    <span id="mobileError" class="text-danger" style="display:none;">MobileNumber is already exists.</span>
                 <span asp-validation-for="Customer_Mobile" class="text-danger"></span>
             </div>
             <div class="form-group">
@@ -69,7 +72,7 @@
             </div>
 
             <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
+                    <input type="submit" id="submitButton" value="Create" class="btn btn-primary" />
             </div>
         </form>
             <div>
@@ -85,5 +88,91 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+
+    <script>
+        $(document).ready(function () {
+            $("#Customer_FName").on("blur", function () {
+                var customerFName = $(this).val();
+                if (customerFName) {
+                    $.ajax({
+                        url: '@Url.Action("IsCustomer_FNameAvailable", "Customer")',
+                        type: 'POST',
+                        contentType: "application/json",
+                        data: JSON.stringify({ Customer_FName : customerFName }),// Send data as form data, not JSON
+                        success: function (data) {
+                            if (data.exists) {
+                                $("#customerFNameError").show();
+                                $("#submitButton").prop("disabled", true);
+                            } else {
+                                $("#customerFNameError").hide();
+                                $("#submitButton").prop("disabled", false);
+                            }
+                        },
+                        error: function () {
+                            $("#customerFNameError").text("Error checking Customer Name. Please try again.").show();
+                            $("#submitButton").prop("disabled", true);
+                        }
+                    });
+                } else {
+                    $("#customerFNameError").hide();
+                    $("#submitButton").prop("disabled", false);
+                }
+            });
+            $("#Customer_Email").on("blur", function () {
+                var email = $(this).val();
+                if (email) {
+                    $.ajax({
+                        url: '@Url.Action("IsEmailAvailable", "Customer")',
+                        type: 'POST',
+                        contentType: "application/json",
+                        data: JSON.stringify({ Email: email }),// Send data as form data, not JSON
+                        success: function (data) {
+                            if (data.exists) {
+                                $("#emailError").show();
+                                $("#submitButton").prop("disabled", true);
+                            } else {
+                                $("#emailError").hide();
+                                $("#submitButton").prop("disabled", false);
+                            }
+                        },
+                        error: function () {
+                            $("#emailError").text("Error checking Email. Please try again.").show();
+                            $("#submitButton").prop("disabled", true);
+                        }
+                    });
+                } else {
+                    $("#emailError").hide();
+                    $("#submitButton").prop("disabled", false);
+                }
+            });
+            $("#Customer_Mobile").on("blur", function () {
+                var mobile = $(this).val();
+                if (mobile) {
+                    $.ajax({
+                        url: '@Url.Action("IsMobileAvailable", "Customer")',
+                        type: 'POST',
+                        contentType: "application/json",
+                        data: JSON.stringify({ Mobile: mobile }),// Send data as form data, not JSON
+                        success: function (data) {
+                            if (data.exists) {
+                                $("#mobileError").show();
+                                $("#submitButton").prop("disabled", true);
+                            } else {
+                                $("#mobileError").hide();
+                                $("#submitButton").prop("disabled", false);
+                            }
+                        },
+                        error: function () {
+                            $("#mobileError").text("Error checking Mobile number. Please try again.").show();
+                            $("#submitButton").prop("disabled", true);
+                        }
+                    });
+                } else {
+                    $("#mobileError").hide();
+                    $("#submitButton").prop("disabled", false);
+                }
+            });
+        });
+    </script>
 }
 
