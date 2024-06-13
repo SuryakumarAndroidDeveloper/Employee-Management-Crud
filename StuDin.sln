@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EmployeeManagement", "Emplo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CRUDApiApplication", "CRUDApiApplication\CRUDApiApplication.csproj", "{6A83F245-03F9-4ECF-8C49-17B2D3DC2021}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyCaRt", "MyCaRt\MyCaRt.csproj", "{CC7E47F8-5798-4ECD-9C17-5A6E58DF2864}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MyCaRt", "MyCaRt\MyCaRt.csproj", "{CC7E47F8-5798-4ECD-9C17-5A6E58DF2864}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyCaRt.XUnitTests", "MyCaRt.XUnitTests\MyCaRt.XUnitTests.csproj", "{69606BAD-66F6-49A5-A767-2AD9E1723E09}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{CC7E47F8-5798-4ECD-9C17-5A6E58DF2864}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CC7E47F8-5798-4ECD-9C17-5A6E58DF2864}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CC7E47F8-5798-4ECD-9C17-5A6E58DF2864}.Release|Any CPU.Build.0 = Release|Any CPU
+		{69606BAD-66F6-49A5-A767-2AD9E1723E09}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{69606BAD-66F6-49A5-A767-2AD9E1723E09}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{69606BAD-66F6-49A5-A767-2AD9E1723E09}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{69606BAD-66F6-49A5-A767-2AD9E1723E09}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
