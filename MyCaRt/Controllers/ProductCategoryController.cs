@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using MyCaRt.Models;
 using Newtonsoft.Json;
 using System.Linq;
@@ -14,11 +15,21 @@ namespace MyCaRt.Controllers
         public readonly HttpClient _httpClient;
         private readonly IConfiguration _config;
 
-        public ProductCategoryController(IConfiguration config)
+        public ProductCategoryController(IConfiguration config, HttpClient httpClient)
         {
             _config = config;
-            _httpClient = new HttpClient();
-            _httpClient.BaseAddress = new Uri(_config["ApiSettings:BaseUri"]);
+            _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+            var baseAddress = _config["ApiSettings:BaseUri"];
+            
+            if (string.IsNullOrEmpty(baseAddress))
+            {
+                throw new ArgumentNullException("BaseUri configuration is missing.");
+            }
+
+            if (_httpClient.BaseAddress == null)
+            {
+                _httpClient.BaseAddress = new Uri(baseAddress);
+            }
 
         }
 
@@ -31,6 +42,7 @@ namespace MyCaRt.Controllers
 
         public IActionResult CreateProductCategory()
         {
+            
             return View();
         }
 
@@ -38,6 +50,10 @@ namespace MyCaRt.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateProductCategory(ProductCategoryModel productCategory)
         {
+            if (productCategory == null)
+            {
+                throw new ArgumentNullException(nameof(productCategory));
+            }
 
             // Convert the employee model to JSON
             var json = JsonConvert.SerializeObject(productCategory);
@@ -51,12 +67,14 @@ namespace MyCaRt.Controllers
             {
                 TempData["SuccessMessage"] = "ProductCategory created successfully!";
 
-                return RedirectToAction("CreateProductCategory");
+                // return RedirectToAction("CreateProductCategory");
+                return RedirectToAction(nameof(CreateProductCategory));
             }
             else
             {
                 // Handle error response
-                ModelState.AddModelError(string.Empty, "Server error. Please contact suryakumar.");
+                TempData["ErrorMessage"] = "ProductCategory Name is AlreadyTaken!";
+              //  ModelState.AddModelError(string.Empty, "Server error. Please contact suryakumar.");
                 return View(productCategory); // Return the view with the form and model to show errors
             }
 
