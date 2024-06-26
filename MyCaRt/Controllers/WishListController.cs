@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc.Rendering;
 using MyCaRt.Models;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System.Text;
 
 namespace MyCaRt.Controllers
@@ -78,7 +79,23 @@ namespace MyCaRt.Controllers
 
                     if (response.IsSuccessStatusCode)
                     {
-                        return Json(new { success = true });
+                        // Read the response content
+                        var responseContent = await response.Content.ReadAsStringAsync();
+
+                        // Deserialize the response to a JObject to access properties
+                        var responseData = JObject.Parse(responseContent);
+
+                        // Check if 'success' property is true
+                        if (responseData["success"].ToObject<bool>())
+                        {
+                            return Json(new { success = true });
+                        }
+                        else
+                        {
+                            // Handle the case where success is false
+                            return Json(new { success = false, message = "This product is already in your wishlist." });
+                        }
+                        // return Json(new { success = true });
                         //return RedirectToAction("ListOfFullProduct");
                     }
                     else

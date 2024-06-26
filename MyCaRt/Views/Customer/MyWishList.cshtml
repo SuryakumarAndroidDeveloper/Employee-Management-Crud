@@ -43,7 +43,7 @@ else
                                                 <label for="Quantity" class="quantity-label">Qty:</label>
                                                 <div class="quantity-controls">
                                                     <button class="quantity-decrement">-</button>
-                                                    <input type="number" id="Quantity" name="Quantity" min="1" max="@item.Available_Quantity" value="1" class="form-control quantity-input" readonly style="pointer-events: none;" />
+                                                    <input type="number" id="Quantity" name="Quantity" min="1" max="@item.Available_Quantity" value="1" class="form-control quantity-input"  />
                                                     <button class="quantity-increment">+</button>
                                                 </div>
                                                 <button type="submit" class="btn btn-sm btn-outline-secondary add-to-cart">Add to cart</button>
@@ -114,7 +114,8 @@ else
                 var maxQuantity = parseInt(quantityInput.attr('max'));
 
                 if (currentValue < maxQuantity) {
-                    quantityInput.val(currentValue + 1);
+                   // quantityInput.val(currentValue + 1);
+                    quantityInput.val(currentValue + 1).trigger('change');
                 }
             });
 
@@ -125,9 +126,30 @@ else
                 var currentValue = parseInt(quantityInput.val());
 
                 if (currentValue > 1) {
-                    quantityInput.val(currentValue - 1);
+                   // quantityInput.val(currentValue - 1);
+                    quantityInput.val(currentValue - 1).trigger('change');
                 }
             });
+            // Validate quantity input on change
+            $('#product-container').on('change', '.quantity-input', function () {
+                validateQuantity($(this));
+            });
+
+
+            // Function to validate quantity and toggle the "Add to cart" button
+            function validateQuantity(quantityInput) {
+                var quantity = parseInt(quantityInput.val());
+                var maxQuantity = parseInt(quantityInput.attr('max'));
+                var addToCartButton = quantityInput.closest('.card').find('.add-to-cart');
+
+                // Disable "Add to cart" button if quantity exceeds available stock or is less than 1
+                if (quantity > 0 && quantity <= maxQuantity) {
+                    addToCartButton.removeAttr('disabled');
+                } else {
+                    alert('Quantity must be between 1 and the available stock.');
+                    addToCartButton.attr('disabled', 'disabled');
+                }
+            }
 
             $('#product-container').on('click', '.add-to-cart', function (event) {
                 event.preventDefault(); // Prevent the default form submission

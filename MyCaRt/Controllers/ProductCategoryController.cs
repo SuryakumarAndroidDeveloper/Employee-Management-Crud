@@ -50,6 +50,10 @@ namespace MyCaRt.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateProductCategory(ProductCategoryModel productCategory)
         {
+            if (!ModelState.IsValid)
+            {
+                return View(productCategory); // Return the view with the form and validation errors
+            }
             if (productCategory == null)
             {
                 throw new ArgumentNullException(nameof(productCategory));
@@ -72,15 +76,14 @@ namespace MyCaRt.Controllers
             }
             else
             {
-                // Handle error response
-                TempData["ErrorMessage"] = "ProductCategory Name is AlreadyTaken!";
-              //  ModelState.AddModelError(string.Empty, "Server error. Please contact suryakumar.");
+                var errorContent = await response.Content.ReadAsStringAsync();
+                TempData["ErrorMessage"] = errorContent;
                 return View(productCategory); // Return the view with the form and model to show errors
             }
 
 
         }
-        //validate the product category_name if already exists or not
+/*        //validate the product category_name if already exists or not
         [HttpPost]
         public async Task<IActionResult> IsCategory_NameAvailable([FromBody] CategoryNameRequest request)
         {
@@ -115,7 +118,7 @@ namespace MyCaRt.Controllers
         public class ExistsResponse
         {
             public bool Exists { get; set; }
-        }
+        }*/
 
 
 

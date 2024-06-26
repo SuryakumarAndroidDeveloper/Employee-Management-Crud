@@ -2,6 +2,7 @@
 using MyCaRt.Helper;
 using MyCaRt.Models;
 using Newtonsoft.Json;
+using System.Reflection;
 using System.Text;
 
 namespace MyCaRt.Controllers
@@ -34,7 +35,7 @@ namespace MyCaRt.Controllers
 
             var encryptedPaymentModel = new PaymentModel
             {
-                CustomerId = paymentModel.CustomerId,
+                //CustomerId = paymentModel.CustomerId,
                 FullName = EncryptionHelper.EncryptString(paymentModel.FullName),
                 Email = EncryptionHelper.EncryptString(paymentModel.Email),
                 Address = EncryptionHelper.EncryptString(paymentModel.Address),
@@ -55,10 +56,21 @@ namespace MyCaRt.Controllers
 
             // PostAsync to your API
             HttpResponseMessage response = await _httpClient.PostAsync($"{_httpClient.BaseAddress}/Payment/AddPayment", content);
-
+            
             if (response.IsSuccessStatusCode)
             {
-                return Ok("Order placed successfully!");
+                // return Ok("Payment successfully!");
+                var responseContent = await response.Content.ReadAsStringAsync();
+                var result = JsonConvert.DeserializeObject<Dictionary<string, object>>(responseContent);
+                if (result.ContainsKey("paymentId"))
+                {
+                    return Ok(new { PaymentId = result["paymentId"] });
+                }
+                else
+                {
+                    return BadRequest("PaymentId not found in the response.");
+                }
+
             }
             else
             {

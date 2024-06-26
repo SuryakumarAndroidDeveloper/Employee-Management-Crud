@@ -109,7 +109,7 @@
                                         <label for="Quantity" class="quantity-label">Qty:</label>
                                         <div class="quantity-controls">
                                             <button class="quantity-decrement">-</button>
-                                            <input type="number" id="Quantity" name="Quantity" min="1" max="@item.Available_Quantity" value="1" class="form-control quantity-input" readonly style="pointer-events: none;" />
+                                            <input type="number" id="Quantity" name="Quantity" min="1" max="@item.Available_Quantity" value="1" class="form-control quantity-input"   />
                                             <button class="quantity-increment">+</button>
                                         </div>
                                      @*    <input type="number" id="Quantity" name="Quantity" min="1" max="@item.Available_Quantity" value="1"
@@ -163,7 +163,9 @@
                 var maxQuantity = parseInt(quantityInput.attr('max'));
 
                 if (currentValue < maxQuantity) {
-                    quantityInput.val(currentValue + 1);
+                   // quantityInput.val(currentValue + 1);
+                    quantityInput.val(currentValue + 1).trigger('change');
+
                 }
             });
 
@@ -174,9 +176,30 @@
                 var currentValue = parseInt(quantityInput.val());
 
                 if (currentValue > 1) {
-                    quantityInput.val(currentValue - 1);
+                   // quantityInput.val(currentValue - 1);
+                    quantityInput.val(currentValue - 1).trigger('change');
                 }
             });
+            // Validate quantity input on change
+            $('#product-container').on('change', '.quantity-input', function () {
+                validateQuantity($(this));
+           });
+
+
+            // Function to validate quantity and toggle the "Add to cart" button
+            function validateQuantity(quantityInput) {
+                var quantity = parseInt(quantityInput.val());
+                var maxQuantity = parseInt(quantityInput.attr('max'));
+                var addToCartButton = quantityInput.closest('.card').find('.add-to-cart');
+
+                // Disable "Add to cart" button if quantity exceeds available stock or is less than 1
+                if (quantity > 0 && quantity <= maxQuantity) {
+                    addToCartButton.removeAttr('disabled');
+                } else {
+                    alert('Quantity must be between 1 and the available stock.');
+                    addToCartButton.attr('disabled', 'disabled');
+                }
+            }
 
             $('#product-container').on('click', '.add-to-cart', function (event) {
                 event.preventDefault(); // Prevent the default form submission
@@ -222,7 +245,7 @@
                 console.log("Add to Wishlist button clicked.");
                 var card = $(this).closest('.card');
                 var productId = card.find('input[name="Product_Id"]').val();
-                var quantity = card.find('input[name="Quantity"]').val();
+               // var quantity = card.find('input[name="Quantity"]').val();
                 var customerName = $('#Customer_FName').val();
 
                 if (!customerName) {
@@ -232,8 +255,8 @@
 
                 var cartData = {
                     Customer_FName: customerName,
-                    Product_Id: productId,
-                    Quantity: quantity
+                    Product_Id: productId
+                   // Quantity: quantity
                 };
                 console.log("Sending AJAX request with cart data:", cartData);
 
@@ -245,8 +268,10 @@
                         console.log("AJAX response received:", response);
                         if (response.success) {
                             alert('WishList added successfully!');
-                            window.location.href = '@Url.Action("ListOfFullProduct", "Product")';
-                        } else {
+                          //  window.location.href = '@Url.Action("ListOfFullProduct", "Product")';
+                        } else if (response.message === "This product is already in your wishlist.") {
+                            alert('This product is already in your wishlist.');
+                        }else {
                             alert('Failed to add wishlist.');
                         }
                     },
@@ -311,7 +336,7 @@
                                                 <label for="Quantity" class="quantity-label">Qty:</label>
                                                    <div class="quantity-controls">
                                                          <button class="quantity-decrement">-</button>
-                                                                 <input type="number" name="Quantity" min="1" max="${product.available_Quantity}" value="1" class="form-control quantity-input" readonly style="pointer-events: none;" />
+                                                                 <input type="number" name="Quantity" min="1" max="${product.available_Quantity}" value="1" class="form-control quantity-input" />
                                                          <button class="quantity-increment">+</button>
                                                    </div>
                                                    ${product.available_Quantity > 0 ?

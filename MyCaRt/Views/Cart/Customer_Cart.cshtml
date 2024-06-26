@@ -211,7 +211,7 @@
                                     <label for="name">
                                         Card Accepted:
                                     </label>
-                                    <img src="Image/card.png"
+                                    <img src="~/Image/card.png"
                                          alt="credit/debit card image">
                                 </div>
 
@@ -230,7 +230,7 @@
                                     </label>
                                     <input type="text" id="CardNumber" name="CardNumber"
                                            placeholder="xxxx-xxxx-xxxx-1234"
-                                           maxlength="19" required>
+                                           maxlength="16" required>
                                 </div>
 
                                 <div class="inputBox">
@@ -313,8 +313,8 @@
                 event.preventDefault(); // Prevent the default behavior of the button
                 var quantityInput = $(this).closest('tr').find('.quantity-input');
                 var currentValue = parseInt(quantityInput.val());
-                var maxQuantity = 100;
-                //var maxQuantity = parseInt(quantityInput.attr('max'));
+               // var maxQuantity = 100;
+                var maxQuantity = parseInt(quantityInput.attr('max'));
                 if (currentValue < maxQuantity) {
                     var newValue = currentValue + 1;
                     quantityInput.val(newValue).trigger('change');
@@ -332,9 +332,27 @@
                     quantityInput.val(newValue).trigger('change');
                 }
             });
-           
+            $('#cart-container').on('change', '.quantity-input', function () {
+                validateQuantity($(this));
+            });
 
-          $('#Customer_FName').change(function () {
+
+            // Function to validate quantity and toggle the "Add to cart" button
+            function validateQuantity(quantityInput) {
+                var quantity = parseInt(quantityInput.val());
+                var maxQuantity = parseInt(quantityInput.attr('max'));
+                var cartContinue = $('#continue-btn');
+
+                // Disable "Add to cart" button if quantity exceeds available stock or is less than 1
+                if (quantity > 0 && quantity <= maxQuantity) {
+                    cartContinue.removeAttr('disabled');
+                } else {
+                    alert('Quantity must be between 1 and the available stock.');
+                    cartContinue.attr('disabled', 'disabled');
+                }
+            }
+
+            $('#Customer_FName').change(function () {
                 var customerId = $(this).val();
                 var cartContainer = $('#cart-container');
                 var cartTotalContainer = $('#cart-total');
@@ -362,7 +380,7 @@
                                     row.append('<td>' + item.product_Name + '</td>');
                                     row.append('<td><div class="quantity-controls">' +
                                         '<button class="quantity-decrement">-</button>' +
-                                        '<input type="number" min="1"  data-cartitemid="' + item.cartItem_Id + '" value="' + item.quantity + '" class="quantity-input" readonly style="pointer-events: none;" />' +
+                                        '<input type="number" min="1" max="' + item.available_Quantity + '"  data-cartitemid="' + item.cartItem_Id + '" value="' + item.quantity + '" class="quantity-input" />' +
                                         '<button class="quantity-increment">+</button>' +
                                         '</div></td>');
 
@@ -461,7 +479,7 @@
             $('#paymentForm').on('submit', function (e) {
                 e.preventDefault();
                 var formData = {
-                    customerId: $('#Customer_FName').val(),
+                   // customerId: $('#Customer_FName').val(),
                     FullName: $('#FullName').val(),
                     Email: $('#Email').val(),
                     Address: $('#Address').val(),
@@ -474,30 +492,31 @@
                     ExpYear: $('#ExpYear').val(),
                     CVV: $('#CVV').val()
                 };
-                console.log(formData);
+               // console.log(formData);
                 $.ajax({
                     type: 'POST',
                     url: '@Url.Action("StorePayment", "Payment")',
                     data: JSON.stringify(formData),
                     contentType: 'application/json; charset=utf-8',
                     success: function (response) {
-                        alert('payment placed successfully!');
-                        // Optionally, you can redirect to another page
-                        $('#payModal').modal('hide');
+                        if (response.paymentId) {
+                            alert('Payment placed successfully!');
+                            //console.log(response);
+                           // console.log(response.paymentId);
+                            $('#payModal').modal('hide');
 
-                        //$('#pay-btn').text('ORDER').removeClass('btn-outline-secondary').addClass(' btn-sm btn-success')
+                            // Change the PAY button to ORDER button after the payment process is complete
+                            var payButton = $('#pay-btn');
+                            payButton.text('ORDER');
+                            payButton.off('click'); // Remove the previous click event
 
-                        // Change the PAY button to ORDER button after the payment process is complete
-                        var payButton = $('#pay-btn');
-                        payButton.text('ORDER');
-                        payButton.off('click'); // Remove the previous click event
-
-                        // Attach a new click event for the ORDER button
-                        payButton.on('click', function () {
-                            placeOrder();
-                        });
-
-
+                            // Attach a new click event for the ORDER button
+                            payButton.on('click', function () {
+                                placeOrder(response.paymentId); // Call the placeOrder function with the paymentId
+                            });
+                        } else {
+                            alert('Payment placed but no paymentId returned.');
+                        }
                     },
                     error: function (xhr, status, error) {
                         alert('Failed to payment: ' + xhr.responseText);
@@ -607,7 +626,7 @@
                 // Cardnumber error message
                 var cardnumber = $('#CardNumber').val();
                 if (cardnumber === '' || cardnumber.length !== 16) {
-                    $('#CardNumber').after('<div class="invalid-feedback">Please enter a valid Card number.</div>');
+                    $('#CardNumber').after('<div class="invalid-feedback">Please enter a 16 digit Card number.</div>');
                 }
 
                 // CVV error message
@@ -629,8 +648,9 @@
                 }
             }
 
-            function placeOrder() {
+            function placeOrder(paymentId) {
                 var customerId = $('#Customer_FName').val();
+               // var cartItemId = $(this).data('cartitemid');
                 // Gather product IDs, quantities, and total price from the cart table
                 var products = [];
 
@@ -647,8 +667,10 @@
 
 
                 var orderData = {
+                   // CartItem_Id: cartItemId,
                     Customer_Id: customerId,
-                    OrderProducts: products
+                    OrderProducts: products,
+                    PaymentId: paymentId // Include the paymentId in the order data
                     //TotalPrice: totalPrice
                 };
 

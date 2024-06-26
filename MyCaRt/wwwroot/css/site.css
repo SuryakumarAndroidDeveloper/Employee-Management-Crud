@@ -15,6 +15,7 @@ html {
 html {
   position: relative;
   min-height: 100%;
+ 
 }
 
 body {
@@ -164,6 +165,7 @@ body {
     justify-content: center;
     align-items: center;
     height: 100vh;
+    width:100%;
     margin: 0;
 }
 

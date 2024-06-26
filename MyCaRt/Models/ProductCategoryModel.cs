@@ -7,11 +7,12 @@ namespace MyCaRt.Models
     {
 
       [Key]
-      public int Category_Id { get; set; }
+      public int? Category_Id { get; set; }
 
       [Required]
       [DisplayName("Category_Name")]
-      public string Category_Name { get; set; }
+      [RegularExpression(@"^[a-zA-Z\s]+$", ErrorMessage = "Category name must only contain letters.")]
+        public string? Category_Name { get; set; }
 
     }
 }

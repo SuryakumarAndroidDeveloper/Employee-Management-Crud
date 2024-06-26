@@ -12,7 +12,7 @@ namespace MyCaRt.Models
 
              public string? Customer_FName { get; set; }
 
-           public int? Quantity { get; set; }
+             public int? Quantity { get; set; }
 
 
 
