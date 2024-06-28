@@ -83,44 +83,5 @@ namespace MyCaRt.Controllers
 
 
         }
-/*        //validate the product category_name if already exists or not
-        [HttpPost]
-        public async Task<IActionResult> IsCategory_NameAvailable([FromBody] CategoryNameRequest request)
-        {
-            if (string.IsNullOrEmpty(request.CategoryName))
-            {
-                return Json(new { Exists = false });
-            }
-
-            var json = JsonConvert.SerializeObject(new { categoryName = request.CategoryName });
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            HttpResponseMessage response = await _httpClient.PostAsync($"{_httpClient.BaseAddress}/ProductCategory/IsCategory_NameAvailable", content);
-
-            if (response.IsSuccessStatusCode)
-            {
-                var result = await response.Content.ReadAsStringAsync();
-                var existsResponse = JsonConvert.DeserializeObject<ExistsResponse>(result);
-                return Json(new { Exists = existsResponse.Exists });
-            }
-            else
-            {
-                return Json(new { Exists = false });
-            }
-        }
-   
-
-        public class CategoryNameRequest
-        {
-            public string CategoryName { get; set; }
-        }
-
-        public class ExistsResponse
-        {
-            public bool Exists { get; set; }
-        }*/
-
-
-
     }
 }

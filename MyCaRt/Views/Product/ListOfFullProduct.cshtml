@@ -7,7 +7,28 @@
 
 <style>
     .card {
+       
         margin-bottom: 20px;
+        height: 100%;
+    }
+
+    .product-image {
+        margin-top: 12px; /* Adjust top margin */
+        width: 100%; /* Take full width of the container */
+        height:330px; /* Fixed height or adjust as needed */
+        overflow: hidden; /* Hide overflow content */
+    }
+
+        .product-image img {
+            width: 100%; /* Ensure the image takes full width */
+            height: auto;
+            object-fit: cover; /* Maintain aspect ratio and cover the container */
+
+        }
+
+    .product-image img:hover {
+        transform: scale(1.1); 
+        z-index: 1; 
     }
 
         .card .card-body {
@@ -94,6 +115,16 @@
             {
                 <div class="col-md-4">
                     <div class="card mb-4 shadow-sm">
+                        <div class="product-image">
+                            @if (!string.IsNullOrEmpty(item.FilePath))
+                            {
+                                <img src="@item.FilePath" alt="@item.ImageName" />
+                            }
+                            else
+                            {
+                                <img src="~/Image/default-product-image.jpeg" alt="Default Product Image" />
+                            }
+                        </div>
                         <div class="card-body">
                             <h5 class="card-title"><strong>Product_Name:</strong> @Html.DisplayFor(modelItem => item.Product_Name)</h5>
                             <p class="card-text"><strong>Category:</strong> @Html.DisplayFor(modelItem => item.Product_Category)</p>
@@ -323,6 +354,11 @@
                             var productHtml = `
                                         <div class="col-md-4">
                                             <div class="card mb-4 shadow-sm">
+                                                      <div class="product-image">
+                                                    ${product.filePath ?
+                                    `<img src="${product.filePath}" class="img-fluid rounded" alt="${product.imageName}">` :
+                                    `<img src="~/images/default-product-image.jpg" class="img-fluid rounded" alt="Default Product Image">`}
+                                                </div>
                                                 <div class="card-body">
                                                     <h5 class="card-title"><strong>Product_Name:</strong> ${product.product_Name}</h5>
                                                     <p class="card-text"><strong>Category:</strong> ${product.product_Category}</p>

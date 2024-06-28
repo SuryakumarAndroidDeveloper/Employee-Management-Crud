@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using MyCaRt.Models;
 using Newtonsoft.Json;
@@ -11,12 +13,14 @@ namespace MyCaRt.Controllers
     {
         public readonly HttpClient _httpClient;
         private readonly IConfiguration _config;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public ProductController(IConfiguration config)
+        public ProductController(IConfiguration config, IWebHostEnvironment webHostEnvironment)
         {
             _config = config;
             _httpClient = new HttpClient();
             _httpClient.BaseAddress = new Uri(_config["ApiSettings:BaseUri"]);
+            _webHostEnvironment = webHostEnvironment;
         }
 
 //get the productcategory to display in the downdown menu  to create product
@@ -46,26 +50,69 @@ namespace MyCaRt.Controllers
 
 //create product with the productcategory id
         [HttpPost]
-        public async Task<IActionResult> CreateProduct(ProductModel product)
+        public async Task<IActionResult> CreateProduct(ProductModel product, IFormFile FilePath)
         {
 
-
-            // Convert the employee model to JSON
-            var json = JsonConvert.SerializeObject(product);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            // Make a POST request to the API
-            HttpResponseMessage response = await _httpClient.PostAsync(_httpClient.BaseAddress + "/Product/InsertProduct_Details", content);
-
-            // Check if the request was successful
-            if (response.IsSuccessStatusCode)
+            if (ModelState.IsValid)
             {
-                TempData["SuccessMessage"] = "Product created successfully!";
-                return RedirectToAction("CreateProduct");
+                if (FilePath != null && FilePath.Length > 0)
+                {
+                    var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads");
+
+                    if (!Directory.Exists(uploadsFolder))
+                    {
+                        Directory.CreateDirectory(uploadsFolder);
+                    }
+
+                    var fileName = Path.GetFileName(FilePath.FileName);
+                    var filePath = Path.Combine(uploadsFolder, fileName);
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await FilePath.CopyToAsync(stream);
+                    }
+
+                    product.FilePath = "/uploads/" + fileName;
+                    product.ImageName = fileName;
+                }
+                // Convert the employee model to JSON
+                var json = JsonConvert.SerializeObject(product);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                // Make a POST request to the API
+                HttpResponseMessage response = await _httpClient.PostAsync(_httpClient.BaseAddress + "/Product/InsertProduct_Details", content);
+
+                // Check if the request was successful
+                if (response.IsSuccessStatusCode)
+                {
+                    TempData["SuccessMessage"] = "Product created successfully!";
+                    return RedirectToAction("CreateProduct");
+                }
+                else
+                {
+                    // Handle error response
+                    List<ProductCategoryModel> categoryData = new List<ProductCategoryModel>();
+
+                    HttpResponseMessage response1 = await _httpClient.GetAsync(_httpClient.BaseAddress + "/ProductCategory/GetProductCategory");
+
+                    if (response1.IsSuccessStatusCode)
+                    {
+                        string data = await response1.Content.ReadAsStringAsync();
+                        categoryData = JsonConvert.DeserializeObject<List<ProductCategoryModel>>(data);
+                    }
+                    else
+                    {
+                        // Handle the error accordingly
+                        return NotFound();
+                    }
+
+                    ViewBag.categoryData = new SelectList(categoryData, "Category_Id", "Category_Name");
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    TempData["ErrorMessage"] = errorContent;
+                    return View(product); // Return the view with the form and model to show errors
+                }
             }
-            else
-            {
-                // Handle error response
+            else {
                 List<ProductCategoryModel> categoryData = new List<ProductCategoryModel>();
 
                 HttpResponseMessage response1 = await _httpClient.GetAsync(_httpClient.BaseAddress + "/ProductCategory/GetProductCategory");
@@ -80,10 +127,9 @@ namespace MyCaRt.Controllers
                     // Handle the error accordingly
                     return NotFound();
                 }
-
                 ViewBag.categoryData = new SelectList(categoryData, "Category_Id", "Category_Name");
-                ModelState.AddModelError(string.Empty, "Server error. Please contact suryakumar.");
-                return View(product); // Return the view with the form and model to show errors
+               // TempData["ErrorMessage"] = "Select the filepath.";
+                return View(product);
             }
 
         }
@@ -184,42 +230,6 @@ namespace MyCaRt.Controllers
             return Json(new { success = true, products });
         }
 
-        //validate the product code
-
-        [HttpPost]
-        public async Task<IActionResult> IsProduct_CodeAvailable([FromBody] ProductCodeRequest request)
-        {
-            if (string.IsNullOrEmpty(request.ProductCode))
-            {
-                return Json(new { Exists = false });
-            }
-
-            var json = JsonConvert.SerializeObject(new { productCode = request.ProductCode });
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            HttpResponseMessage response = await _httpClient.PostAsync($"{_httpClient.BaseAddress}/Product/IsProduct_CodeAvailable", content);
-
-            if (response.IsSuccessStatusCode)
-            {
-                var result = await response.Content.ReadAsStringAsync();
-                var existsResponse = JsonConvert.DeserializeObject<ExistsResponse>(result);
-                return Json(new { Exists = existsResponse.Exists });
-            }
-            else
-            {
-                return Json(new { Exists = false });
-            }
-        }
-
-        public class ProductCodeRequest
-        {
-            public string ProductCode { get; set; }
-        }
-
-        public class ExistsResponse
-        {
-            public bool Exists { get; set; }
-        }
 
     }
 }

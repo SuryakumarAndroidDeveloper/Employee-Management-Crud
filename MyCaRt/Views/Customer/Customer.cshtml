@@ -3,10 +3,6 @@
 @{
     ViewData["Title"] = "Customer";
 }
-@{
-    ViewData["Title"] = "Customer";
-  
-}
 
 <h1>Create Customer</h1>
 
@@ -18,6 +14,7 @@
         @TempData["SuccessMessage"]
     </div>
 }
+
 <hr />
 <p>
     <a asp-controller="Customer" asp-action="ListOfCustomers">ListOfCutomers</a>
@@ -31,7 +28,7 @@
             <div class="form-group">
                 <label style="margin-right:1000px" asp-for="Customer_FName" class="control-label"></label>
                 <input asp-for="Customer_FName" class="form-control" />
-                    <span id="customerFNameError" class="text-danger" style="display:none;">CustomerName is already exists.</span>
+                    <span id="customerFNameError" class="text-danger" style="display:none;"></span>
                 <span asp-validation-for="Customer_FName" class="text-danger"></span>
             </div>
             <div class="form-group">
@@ -51,13 +48,13 @@
             <div class="form-group">
                     <label style="margin-right:1000px" asp-for="Customer_Email" class="control-label"></label>
                 <input asp-for="Customer_Email" class="form-control" />
-                    <span id="emailError" class="text-danger" style="display:none;">Email is already exists.</span>
+                    <span id="emailError" class="text-danger" style="display:none;"></span>
                 <span asp-validation-for="Customer_Email" class="text-danger"></span>
             </div>
             <div class="form-group">
                     <label style="margin-right:1000px" asp-for="Customer_Mobile" class="control-label"></label>
                 <input asp-for="Customer_Mobile" class="form-control" />
-                    <span id="mobileError" class="text-danger" style="display:none;">MobileNumber is already exists.</span>
+                    <span id="mobileError" class="text-danger" style="display:none;"></span>
                 <span asp-validation-for="Customer_Mobile" class="text-danger"></span>
             </div>
             <div class="form-group">
@@ -76,7 +73,7 @@
             </div>
         </form>
             <div>
-                <a asp-action="Index">Back to List</a>
+                <a asp-action="ListOfCustomers">Back to List</a>
             </div>
         </div>
     </div>
@@ -91,88 +88,21 @@
 
     <script>
         $(document).ready(function () {
-            $("#Customer_FName").on("blur", function () {
-                var customerFName = $(this).val();
-                if (customerFName) {
-                    $.ajax({
-                        url: '@Url.Action("IsCustomer_FNameAvailable", "Customer")',
-                        type: 'POST',
-                        contentType: "application/json",
-                        data: JSON.stringify({ Customer_FName : customerFName }),// Send data as form data, not JSON
-                        success: function (data) {
-                            if (data.exists) {
-                                $("#customerFNameError").show();
-                                $("#submitButton").prop("disabled", true);
-                            } else {
-                                $("#customerFNameError").hide();
-                                $("#submitButton").prop("disabled", false);
-                            }
-                        },
-                        error: function () {
-                            $("#customerFNameError").text("Error checking Customer Name. Please try again.").show();
-                            $("#submitButton").prop("disabled", true);
-                        }
-                    });
-                } else {
-                    $("#customerFNameError").hide();
-                    $("#submitButton").prop("disabled", false);
+            var errorMessage = '@TempData["ErrorMessage"]';
+            if (errorMessage) {
+                if (errorMessage.includes("CustomerName already exists.")) {
+                    $("#customerFNameError").text("CustomerName already exists.").show();
                 }
-            });
-            $("#Customer_Email").on("blur", function () {
-                var email = $(this).val();
-                if (email) {
-                    $.ajax({
-                        url: '@Url.Action("IsEmailAvailable", "Customer")',
-                        type: 'POST',
-                        contentType: "application/json",
-                        data: JSON.stringify({ Email: email }),// Send data as form data, not JSON
-                        success: function (data) {
-                            if (data.exists) {
-                                $("#emailError").show();
-                                $("#submitButton").prop("disabled", true);
-                            } else {
-                                $("#emailError").hide();
-                                $("#submitButton").prop("disabled", false);
-                            }
-                        },
-                        error: function () {
-                            $("#emailError").text("Error checking Email. Please try again.").show();
-                            $("#submitButton").prop("disabled", true);
-                        }
-                    });
-                } else {
-                    $("#emailError").hide();
-                    $("#submitButton").prop("disabled", false);
+                if (errorMessage.includes("Email already exists.")) {
+                    $("#emailError").text("Email already exists.").show();
                 }
-            });
-            $("#Customer_Mobile").on("blur", function () {
-                var mobile = $(this).val();
-                if (mobile) {
-                    $.ajax({
-                        url: '@Url.Action("IsMobileAvailable", "Customer")',
-                        type: 'POST',
-                        contentType: "application/json",
-                        data: JSON.stringify({ Mobile: mobile }),// Send data as form data, not JSON
-                        success: function (data) {
-                            if (data.exists) {
-                                $("#mobileError").show();
-                                $("#submitButton").prop("disabled", true);
-                            } else {
-                                $("#mobileError").hide();
-                                $("#submitButton").prop("disabled", false);
-                            }
-                        },
-                        error: function () {
-                            $("#mobileError").text("Error checking Mobile number. Please try again.").show();
-                            $("#submitButton").prop("disabled", true);
-                        }
-                    });
-                } else {
-                    $("#mobileError").hide();
-                    $("#submitButton").prop("disabled", false);
+                if (errorMessage.includes("MobileNumber already exists.")) {
+                    $("#mobileError").text("MobileNumber already exists.").show();
                 }
-            });
+            }
         });
+       
+
     </script>
 }
 
