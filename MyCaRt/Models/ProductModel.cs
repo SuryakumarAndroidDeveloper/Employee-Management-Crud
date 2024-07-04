@@ -28,5 +28,6 @@ namespace MyCaRt.Models
         
         public string? FilePath { get; set; }
         public string? ImageName { get; set; }
+
     }
 }

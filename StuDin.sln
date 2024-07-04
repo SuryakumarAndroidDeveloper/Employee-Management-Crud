@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CRUDApiApplication", "CRUDA
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MyCaRt", "MyCaRt\MyCaRt.csproj", "{CC7E47F8-5798-4ECD-9C17-5A6E58DF2864}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyCaRt.XUnitTests", "MyCaRt.XUnitTests\MyCaRt.XUnitTests.csproj", "{69606BAD-66F6-49A5-A767-2AD9E1723E09}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MyCaRt.XUnitTests", "MyCaRt.XUnitTests\MyCaRt.XUnitTests.csproj", "{69606BAD-66F6-49A5-A767-2AD9E1723E09}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,4 +1,22 @@
-﻿<style>
+﻿@model MyCaRt.Models.LoginModel
+@{
+    ViewBag.Title = "Login/Register";
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
+    </div>
+}
+@if(ViewBag.Message!=null){ 
+    <div class="alert alert-danger">
+        @ViewBag.Message
+    </div>
+}
+
+
+<style>
      
 *{
   margin: 0;
@@ -200,12 +218,15 @@ form .btn input[type="submit"]{
             <div class="slider-tab"></div>
         </div>
         <div class="form-inner">
-            <form action="#" class="login">
+            <form asp-action="Login" method="post" class="login">
                 <div class="field">
-                    <input type="text" placeholder="Email Address" required>
+                    <input type="email" name="Email" placeholder="UserEmail" required>
+                    <span asp-validation-for="Email" class="text-danger"></span>
                 </div>
                 <div class="field">
-                    <input type="password" placeholder="Password" required>
+                    <input type="password" name="Password" placeholder="Password" required>
+                    <span asp-validation-for="Password" class="text-danger"></span>
+
                 </div>
                 <div class="pass-link"><a href="#">Forgot password?</a></div>
                 <div class="field btn">
@@ -214,15 +235,25 @@ form .btn input[type="submit"]{
                 </div>
                 <div class="signup-link">Not a member? <a href="">Signup now</a></div>
             </form>
-            <form action="#" class="signup">
+            <form asp-action="Register" method="post" class="signup">
                 <div class="field">
-                    <input type="text" placeholder="Email Address" required>
+                    <input type="text" name="UserName" placeholder="UserName" required>
+                    <span asp-validation-for="UserName" class="text-danger"></span>
+
                 </div>
                 <div class="field">
-                    <input type="password" placeholder="Password" required>
+                    <input type="email" name="Email" placeholder="Email" required>
+                    <span asp-validation-for="Email" class="text-danger"></span>
                 </div>
                 <div class="field">
-                    <input type="password" placeholder="Confirm password" required>
+                    <input type="password" name="Password" placeholder="Password" required>
+                    <span asp-validation-for="Password" class="text-danger"></span>
+
+                </div>
+                <div class="field">
+                    <input type="password" name="CPassword" placeholder="ConfirmPassword" required>
+                    <span asp-validation-for="CPassword" class="text-danger"></span>
+
                 </div>
                 <div class="field btn">
                     <div class="btn-layer"></div>

@@ -1,99 +1,151 @@
-﻿@model MyCaRt.Models.ProductModel
+﻿@model List<MyCaRt.Models.ProductModel>
 
 @{
-    ViewData["Title"] = "CreateProduct";
+    ViewData["Title"] = "Create Product";
 }
-
-<h1>CreateProduct</h1>
-
-@if (TempData["SuccessMessage"] != null)
+@if(TempData["SuccessMessage"] != null)
 {
     <div class="alert alert-success">
         @TempData["SuccessMessage"]
     </div>
 }
+<style>
+    .my-form .form-group .row {
+        margin-bottom: 10px;
+    }
 
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <div class="containerindex">
-            <form asp-action="CreateProduct" enctype="multipart/form-data" asp-validation-summary="All">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group" hidden>
-                    <label style="margin-right:1000px" asp-for="Product_Id" class="control-label"></label>
-                <input asp-for="Product_Id" class="form-control" />
-                <span asp-validation-for="Product_Id" class="text-danger"></span>
-            </div>
+        .my-form .form-group .row .col-md-3,
+        .my-form .form-group .row .col-md-6 {
+            display: inline-block;
+            width: calc(100% / 7 - 10px);
+            margin-right: 0px;
+        }
 
-            <div class="form-group">
-                    <label style="margin-right:1000px" asp-for="Product_Category" class="control-label"></label>
-                <select asp-for="Product_Category" class="form-control" asp-items="@ViewBag.categoryData">
-                    <option value="">Select ProductCategory</option>
-                </select>
-                <span asp-validation-for="Product_Category" class="text-danger"></span>
-            </div>
-      
-            <div class="form-group">
-                <label style="margin-right:1000px" asp-for="Product_Code" class="control-label"></label>
-                <input asp-for="Product_Code" class="form-control" />
-                    <span style="margin-right:170px" id="productCodeError" class="text-danger" style="display:none;"></span>
-                <span asp-validation-for="Product_Code" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                    <label style="margin-right:1000px" asp-for="Product_Name" class="control-label"></label>
-                <input asp-for="Product_Name" class="form-control" />
-                <span asp-validation-for="Product_Name" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                    <label style ="margin-right:1000px" asp-for="Product_Price" class="control-label"></label>
-                <input asp-for="Product_Price" class="form-control" />
-                <span asp-validation-for="Product_Price" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                    <label style="margin-right:1000px" asp-for="Product_Description" class="control-label"></label>
-                <input asp-for="Product_Description" class="form-control" />
-                <span asp-validation-for="Product_Description" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                    <label style="margin-right:1000px" asp-for="Available_Quantity" class="control-label"></label>
-                <input asp-for="Available_Quantity" class="form-control" />
-                <span asp-validation-for="Available_Quantity" class="text-danger"></span>
-            </div><br />
-                <div class="form-group">
-                    <label asp-for="FilePath" class="control-label"></label>
-                    <input asp-for="FilePath" class="form-control-file" type="file" />
-                    <span style="margin-right:170px" id="filepathError" class="text-danger" style="display:none;"></span>
-                    <span asp-validation-for="FilePath" class="text-danger"></span>
+            .my-form .form-group .row .col-md-3:last-child,
+            .my-form .form-group .row .col-md-6:last-child {
+                margin-right: 0;
+            }
+
+    .my-form .form-control {
+        width: 100%;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    .my-form .form-control-file {
+        width: auto;
+    }
+
+    .form-control-sm {
+        padding: 0.25rem 0.2rem;
+        font-size: 0.75rem;
+    }
+</style>
+<hr/>
+
+<h2>Create Product</h2>
+<div class="container">
+    <form asp-action="CreateProduct" method="post" enctype="multipart/form-data" id="productForm">
+    <div id="productFields">
+        @for (int i = 0; i < Model.Count; i++)
+        {
+            <div class="product-field">
+                <div class="form-group row">
+                <div class="col-md-3">
+                            <label asp-for="@Model[i].Product_Category" class="control-label">Choose Category</label>
+                            <select asp-for="@Model[i].Product_Category" name="[@i].Product_Category" class="form-control form-control-sm custom-select" asp-items="@ViewBag.CategoryData">
+                        <option value="">Select Product Category</option>
+                    </select>
+                    <span asp-validation-for="@Model[i].Product_Category" class="text-danger"></span>
                 </div>
+                <div class="col-md-3">
+                            <label asp-for="@Model[i].Product_Code" class="control-label">Product Code</label>
+                            <input asp-for="@Model[i].Product_Code" class="form-control form-control-sm" />
+                    <span asp-validation-for="@Model[i].Product_Code" class="text-danger"></span>
+                    <span id="productCodeError"  class="text-danger"></span>
 
-<br />
-            <div class="form-group">
-                    <input type="submit" id="submitButton" value="Create" class="btn btn-primary" />
+                </div>
+                <div class="col-md-3">
+                            <label asp-for="@Model[i].Product_Name" class="control-label">Product Name</label>
+                            <input asp-for="@Model[i].Product_Name" class="form-control form-control-sm" />
+                    <span asp-validation-for="@Model[i].Product_Name" class="text-danger"></span>
+                </div>
+                <div class="col-md-3">
+                            <label asp-for="@Model[i].Product_Price" class="control-label">Product Price</label>
+                            <input asp-for="@Model[i].Product_Price" class="form-control form-control-sm" />
+                    <span asp-validation-for="@Model[i].Product_Price" class="text-danger"></span>
+                </div>
+                <div class="col-md-3">
+                            <label asp-for="@Model[i].Product_Description" class="control-label">Description</label>
+                            <input asp-for="@Model[i].Product_Description" class="form-control form-control-sm" />
+                    <span asp-validation-for="@Model[i].Product_Description" class="text-danger"></span>
+                </div>
+                <div class="col-md-3">
+                            <label asp-for="@Model[i].Available_Quantity" class="control-label">Available Quantity</label>
+                            <input asp-for="@Model[i].Available_Quantity" class="form-control form-control-sm" />
+                    <span asp-validation-for="@Model[i].Available_Quantity" class="text-danger"></span>
+                </div>
+                <div class="col-md-3">
+                            <label asp-for="@Model[i].ImageName" class="control-label">Select Image</label>
+                            <input type="file" name="ImageName" class="form-control form-control-sm" />
+                    <span asp-validation-for="@Model[i].ImageName" class="text-danger"></span>
+                    <span id="filepathError" class="text-danger"></span>
+
+                </div>
+                </div>
+                <button type="button" class="btn btn-danger remove-field">Remove</button>
             </div>
-        </form>
-        <br/>
-            <div>
-                <a asp-action="ListOfFullProduct">Back to List</a>
-            </div>
-        </div>
+        }
     </div>
+    <button type="button" id="addField" class="btn btn-primary">Add Another Product</button>
+    <button type="submit" class="btn btn-success">Submit</button>
+</form>
 </div>
 
-
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-
-<script>
-    $(document).ready(function () {
-        var errorMessage = '@TempData["ErrorMessage"]';
-        if (errorMessage && errorMessage.includes("Product code already exists.")) {
-            $("#productCodeError").text(errorMessage).show();
-        }
-            if (errorMessage && errorMessage.includes("Select the filepath.")) {
+    <script>
+        $(document).ready(function () {
+            var errorMessage = '@TempData["ErrorMessage"]';
+            if (errorMessage && errorMessage.includes("Product code already exists.")) {
+                $("#productCodeError").text(errorMessage).show();
+            }
+            if (errorMessage && errorMessage.includes("Select the Image.")) {
                 $("#filepathError").text(errorMessage).show();
             }
+   
+           
+
+        document.getElementById('addField').addEventListener('click', function () {
+            var productFields = document.getElementById('productFields');
+            var fieldCount = productFields.children.length;
+            var newField = productFields.children[0].cloneNode(true);
+
+            newField.querySelectorAll('input,select').forEach(function (input) {
+                var name = input.getAttribute('name').replace('[0]', '[' + fieldCount + ']');
+                input.setAttribute('name', name);
+                    input.value = '';
+                   
+            });
+       
+
+            productFields.appendChild(newField);
+          
+                
         });
 
-  </script>
+        document.getElementById('productFields').addEventListener('click', function (e) {
+            if (e.target && e.target.matches('button.remove-field')) {
+                if (document.getElementsByClassName('product-field').length > 1) {
+                    e.target.closest('.product-field').remove();
+                } else {
+                    alert("At least one product details is required.");
+                }
+                 
+            }
+        });
+        });
+    </script>
 }
+
+
+

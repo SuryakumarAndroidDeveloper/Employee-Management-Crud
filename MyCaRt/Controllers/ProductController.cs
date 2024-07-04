@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using MyCaRt.Models;
 using Newtonsoft.Json;
+using NuGet.Packaging.Signing;
+using System.Reflection;
 using System.Text;
 using static MyCaRt.Controllers.ProductCategoryController;
 
@@ -23,116 +25,116 @@ namespace MyCaRt.Controllers
             _webHostEnvironment = webHostEnvironment;
         }
 
-//get the productcategory to display in the downdown menu  to create product
-        public async Task<IActionResult> CreateProduct()
+        private async Task<bool> SetCategoryDataAsync()
         {
             List<ProductCategoryModel> categoryData = new List<ProductCategoryModel>();
+            HttpResponseMessage categoryResponse = await _httpClient.GetAsync($"{_httpClient.BaseAddress}/ProductCategory/GetProductCategory");
 
-            HttpResponseMessage response = await _httpClient.GetAsync(_httpClient.BaseAddress + "/ProductCategory/GetProductCategory");
-
-            if (response.IsSuccessStatusCode)
+            if (categoryResponse.IsSuccessStatusCode)
             {
-                string data = await response.Content.ReadAsStringAsync();
+                string data = await categoryResponse.Content.ReadAsStringAsync();
                 categoryData = JsonConvert.DeserializeObject<List<ProductCategoryModel>>(data);
+                ViewBag.CategoryData = new SelectList(categoryData, "Category_Id", "Category_Name");
+                return true;
             }
-            else
+            return false;
+        }
+
+        //get the productcategory to display in the downdown menu  to create product
+        public async Task<IActionResult> CreateProduct()
+        {
+
+            if (!await SetCategoryDataAsync())
             {
-                // Handle the error accordingly
                 return NotFound();
             }
 
-            ViewBag.categoryData = new SelectList(categoryData, "Category_Id", "Category_Name");
-
-            return View();
+            return View(new List<ProductModel> { new ProductModel() });
         }
 
 
 
 //create product with the productcategory id
         [HttpPost]
-        public async Task<IActionResult> CreateProduct(ProductModel product, IFormFile FilePath)
+        public async Task<IActionResult> CreateProduct(List<ProductModel> products, List<IFormFile> ImageName)
         {
 
             if (ModelState.IsValid)
             {
-                if (FilePath != null && FilePath.Length > 0)
+            
+                try
                 {
-                    var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads");
-
-                    if (!Directory.Exists(uploadsFolder))
+                    // Process each product and upload associated file
+                    for (int i = 0; i < products.Count; i++)
                     {
-                        Directory.CreateDirectory(uploadsFolder);
+                        var product = products[i];
+                        if (ImageName[i] != null && ImageName[i].Length > 0)
+                        {
+                            var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads");
+                            if (!Directory.Exists(uploadsFolder))
+                            {
+                                Directory.CreateDirectory(uploadsFolder);
+                              
+                               
+                            }
+                             var timestamp = DateTime.Now.ToString("-yyyy-MM-ddHHmmss ");
+                            //var fileName = Path.GetFileName(ImageName[i].FileName)+DateTime.Now;
+                            var fileName = Path.GetFileNameWithoutExtension(ImageName[i].FileName) + i + timestamp + Path.GetExtension(ImageName[i].FileName);
+                            var filePath = Path.Combine(uploadsFolder, fileName);
+
+                            using var fileStream = new FileStream(filePath, FileMode.Create);
+                            
+                            await ImageName[i].CopyToAsync(fileStream);
+                            
+
+                            product.FilePath = "/uploads/" + fileName;
+                            product.ImageName = fileName;
+                        }
                     }
 
-                    var fileName = Path.GetFileName(FilePath.FileName);
-                    var filePath = Path.Combine(uploadsFolder, fileName);
+                        // Convert the product model to JSON
+                        var json = JsonConvert.SerializeObject(products);
+                        var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                    using (var stream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await FilePath.CopyToAsync(stream);
+                        // Make a POST request to the API to insert product details
+                        HttpResponseMessage response = await _httpClient.PostAsync($"{_httpClient.BaseAddress}/Product/InsertProduct_Details", content);
+
+                        // Check if the request was successful
+                        if (!response.IsSuccessStatusCode)
+                        {
+                        if (!await SetCategoryDataAsync())
+                        {
+                            return NotFound();
+                        }
+                        var errorContent = await response.Content.ReadAsStringAsync();
+                        TempData["ErrorMessage"] = errorContent;
+                        return View(products);
                     }
+                    
 
-                    product.FilePath = "/uploads/" + fileName;
-                    product.ImageName = fileName;
+                    TempData["SuccessMessage"] = "Products created successfully!";
+                    return RedirectToAction(nameof(CreateProduct));
                 }
-                // Convert the employee model to JSON
-                var json = JsonConvert.SerializeObject(product);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-                // Make a POST request to the API
-                HttpResponseMessage response = await _httpClient.PostAsync(_httpClient.BaseAddress + "/Product/InsertProduct_Details", content);
-
-                // Check if the request was successful
-                if (response.IsSuccessStatusCode)
+                catch (Exception ex)
                 {
-                    TempData["SuccessMessage"] = "Product created successfully!";
-                    return RedirectToAction("CreateProduct");
-                }
-                else
-                {
-                    // Handle error response
-                    List<ProductCategoryModel> categoryData = new List<ProductCategoryModel>();
-
-                    HttpResponseMessage response1 = await _httpClient.GetAsync(_httpClient.BaseAddress + "/ProductCategory/GetProductCategory");
-
-                    if (response1.IsSuccessStatusCode)
+                    if (!await SetCategoryDataAsync())
                     {
-                        string data = await response1.Content.ReadAsStringAsync();
-                        categoryData = JsonConvert.DeserializeObject<List<ProductCategoryModel>>(data);
-                    }
-                    else
-                    {
-                        // Handle the error accordingly
                         return NotFound();
                     }
-
-                    ViewBag.categoryData = new SelectList(categoryData, "Category_Id", "Category_Name");
-                    var errorContent = await response.Content.ReadAsStringAsync();
-                    TempData["ErrorMessage"] = errorContent;
-                    return View(product); // Return the view with the form and model to show errors
+                    TempData["ErrorMessage"] = "Select the Image.";
+                    return View(products);
                 }
             }
-            else {
-                List<ProductCategoryModel> categoryData = new List<ProductCategoryModel>();
 
-                HttpResponseMessage response1 = await _httpClient.GetAsync(_httpClient.BaseAddress + "/ProductCategory/GetProductCategory");
-
-                if (response1.IsSuccessStatusCode)
-                {
-                    string data = await response1.Content.ReadAsStringAsync();
-                    categoryData = JsonConvert.DeserializeObject<List<ProductCategoryModel>>(data);
-                }
-                else
-                {
-                    // Handle the error accordingly
-                    return NotFound();
-                }
-                ViewBag.categoryData = new SelectList(categoryData, "Category_Id", "Category_Name");
-               // TempData["ErrorMessage"] = "Select the filepath.";
-                return View(product);
+            // If model state is not valid, re-render the form with validation errors
+            if (!await SetCategoryDataAsync())
+            {
+                return NotFound();
             }
-
+            //TempData["ErrorMessage"] = "Select the filepath.";
+            return View(products);
         }
+    
  //list of full product
         public async Task<IActionResult> ListOfFullProduct()
         {
