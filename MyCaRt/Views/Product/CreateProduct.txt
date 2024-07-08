@@ -1,4 +1,72 @@
-﻿@model List<MyCaRt.Models.ProductModel>
+﻿
+
+    <button type="button" id="addField" class="btn btn-primary">Add New Product</button>
+    
+
+//add new product with differentcategoryname
+        document.getElementById('addField').addEventListener('click', function () {
+           var productFields = document.getElementById('productFields');
+           var fieldCount = productFields.children.length;
+           var newField = productFields.children[0].cloneNode(true);
+
+           newField.querySelectorAll('input,select').forEach(function (input) {
+                var name = input.getAttribute('name').replace('[0]', '[' + fieldCount + ']');
+                input.setAttribute('name', name);
+                    input.value = '';
+                   
+            });    
+           productFields.appendChild(newField);                        
+        });
+
+        //New feature same categoryname but differentproduct
+            $('#addSameCategoryProduct').click(function () {
+                var productFields = $('#productFields');
+                var fieldCount = productFields.children().length;
+                var lastProductField = productFields.children().last();
+                var selectedCategory = lastProductField.find('select').val();
+                if (!selectedCategory) {
+                    alert("Please choose the category first.");
+                    return;
+                }
+
+
+                var newField = lastProductField.clone();
+              
+                newField.find('input, select').each(function () {
+                    var input = $(this);
+                    var name = input.attr('name').replace(/\[\d+\]/, '[' + fieldCount + ']');
+                   
+
+                    if (input.is('select')) {
+                        input.val(selectedCategory);  
+                        input.prop('hidden', true);
+                        
+                        input.closest('.form-group.row').find('label[for$="Product_Category"]').hide();
+                        
+
+                    } else {
+                        input.val('');
+                    }
+                    input.attr('name', name);
+                    
+                });
+               
+                productFields.append(newField);
+            });
+
+
+
+            //change for all the fields
+            $(".productcategory").on("change", function () {
+
+                let value = $(".productcategory").val();
+
+                $(".productcategory").val(value);
+            })
+
+            //////full code
+
+            @model List<MyCaRt.Models.ProductModel>
 
 @{
     ViewData["Title"] = "Create Product";
@@ -143,11 +211,11 @@
                     <div class="product-field">
                         <div class="form-group row">
                             <div class="col-md-3">
-                                <input name="[${newIndex}].Product_Category" type="hidden" value="${selectedCategory}" />
+                                        <input name="[${newIndex}].Product_Category" id=[${newIndex}].Product_Category" type="hidden" value="${selectedCategory}" />
                             </div>
                             <div class="col-md-3">
                                 <label class="control-label">Product Code</label>
-                                <input class="form-control form-control-sm" name="[${newIndex}].Product_Code" />
+                                        <input class="form-control form-control-sm" id="[${newIndex}].Product_Code" name="[${newIndex}].Product_Code" />
                                 <span asp-validation-for="[${newIndex}].Product_Code" class="text-danger"></span>
                                 <span class="text-danger product-code-error" id="productCodeError${newIndex}"></span>
                             </div>

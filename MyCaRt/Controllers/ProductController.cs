@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using MyCaRt.Models;
@@ -58,39 +59,64 @@ namespace MyCaRt.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateProduct(List<ProductModel> products, List<IFormFile> ImageName)
         {
+            if (products.Count == ImageName.Count)
+            {
+                // Process each product and upload associated file
+                for (int i = 0; i < products.Count; i++)
+                {
+                    var product = products[i];
+                  
+             
+
+                    if (ImageName.Count > 0 && ImageName[i] != null && ImageName[i].Length > 0)
+                    {
+                        var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads");
+                        if (!Directory.Exists(uploadsFolder))
+                        {
+                            Directory.CreateDirectory(uploadsFolder);
+
+
+                        }
+                        var timestamp = DateTime.Now.ToString("-yyyy-MM-ddHHmmss ");
+                        //var fileName = Path.GetFileName(ImageName[i].FileName)+DateTime.Now;
+                        var fileName = Path.GetFileNameWithoutExtension(ImageName[i].FileName) + i + timestamp + Path.GetExtension(ImageName[i].FileName);
+                        var filePath = Path.Combine(uploadsFolder, fileName);
+
+                        using var fileStream = new FileStream(filePath, FileMode.Create);
+
+                        await ImageName[i].CopyToAsync(fileStream);
+
+
+                        product.FilePath = "/uploads/" + fileName;
+                        product.ImageName = fileName;
+                    }
+                    else
+                    {
+                        if (!await SetCategoryDataAsync())
+                        {
+                            return NotFound();
+                        }
+                        TempData["ErrorMessage"] = "Select the Image.";
+                        return View(products);
+                    }
+                }
+            }
+            else
+            {
+                if (!await SetCategoryDataAsync())
+                {
+                    return NotFound();
+                }
+                TempData["ErrorMessageCount"] = "Please Fill the Full Data";
+                return View(products);
+            }
 
             if (ModelState.IsValid)
             {
             
                 try
                 {
-                    // Process each product and upload associated file
-                    for (int i = 0; i < products.Count; i++)
-                    {
-                        var product = products[i];
-                        if (ImageName[i] != null && ImageName[i].Length > 0)
-                        {
-                            var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads");
-                            if (!Directory.Exists(uploadsFolder))
-                            {
-                                Directory.CreateDirectory(uploadsFolder);
-                              
-                               
-                            }
-                             var timestamp = DateTime.Now.ToString("-yyyy-MM-ddHHmmss ");
-                            //var fileName = Path.GetFileName(ImageName[i].FileName)+DateTime.Now;
-                            var fileName = Path.GetFileNameWithoutExtension(ImageName[i].FileName) + i + timestamp + Path.GetExtension(ImageName[i].FileName);
-                            var filePath = Path.Combine(uploadsFolder, fileName);
-
-                            using var fileStream = new FileStream(filePath, FileMode.Create);
-                            
-                            await ImageName[i].CopyToAsync(fileStream);
-                            
-
-                            product.FilePath = "/uploads/" + fileName;
-                            product.ImageName = fileName;
-                        }
-                    }
+               
 
                         // Convert the product model to JSON
                         var json = JsonConvert.SerializeObject(products);
@@ -121,10 +147,11 @@ namespace MyCaRt.Controllers
                     {
                         return NotFound();
                     }
-                    TempData["ErrorMessage"] = "Select the Image.";
+                    TempData["ErrorMessage"] = "Server error please try later.";
                     return View(products);
                 }
             }
+
 
             // If model state is not valid, re-render the form with validation errors
             if (!await SetCategoryDataAsync())
@@ -134,9 +161,9 @@ namespace MyCaRt.Controllers
             //TempData["ErrorMessage"] = "Select the filepath.";
             return View(products);
         }
-    
- //list of full product
-        public async Task<IActionResult> ListOfFullProduct()
+
+//list of full product
+public async Task<IActionResult> ListOfFullProduct()
         {
 
 
