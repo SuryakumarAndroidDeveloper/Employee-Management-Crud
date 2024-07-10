@@ -53,71 +53,51 @@ namespace MyCaRt.Controllers
             return View(new List<ProductModel> { new ProductModel() });
         }
 
-
-
-//create product with the productcategory id
-        [HttpPost]
-        public async Task<IActionResult> CreateProduct(List<ProductModel> products, List<IFormFile> ImageName)
+        public async Task<IActionResult> TestCreateProduct()
         {
-            if (products.Count == ImageName.Count)
+
+            if (!await SetCategoryDataAsync())
             {
-                // Process each product and upload associated file
-                for (int i = 0; i < products.Count; i++)
-                {
-                    var product = products[i];
-                  
-             
-
-                    if (ImageName.Count > 0 && ImageName[i] != null && ImageName[i].Length > 0)
-                    {
-                        var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads");
-                        if (!Directory.Exists(uploadsFolder))
-                        {
-                            Directory.CreateDirectory(uploadsFolder);
-
-
-                        }
-                        var timestamp = DateTime.Now.ToString("-yyyy-MM-ddHHmmss ");
-                        //var fileName = Path.GetFileName(ImageName[i].FileName)+DateTime.Now;
-                        var fileName = Path.GetFileNameWithoutExtension(ImageName[i].FileName) + i + timestamp + Path.GetExtension(ImageName[i].FileName);
-                        var filePath = Path.Combine(uploadsFolder, fileName);
-
-                        using var fileStream = new FileStream(filePath, FileMode.Create);
-
-                        await ImageName[i].CopyToAsync(fileStream);
-
-
-                        product.FilePath = "/uploads/" + fileName;
-                        product.ImageName = fileName;
-                    }
-                    else
-                    {
-                        if (!await SetCategoryDataAsync())
-                        {
-                            return NotFound();
-                        }
-                        TempData["ErrorMessage"] = "Select the Image.";
-                        return View(products);
-                    }
-                }
-            }
-            else
-            {
-                if (!await SetCategoryDataAsync())
-                {
-                    return NotFound();
-                }
-                TempData["ErrorMessageCount"] = "Please Fill the Full Data";
-                return View(products);
+                return NotFound();
             }
 
+            return View(new List<ProductModel> { new ProductModel() });
+        }
+        //store the image and get the storedpath
+        [HttpPost]
+        public async Task<IActionResult> UploadImage(IFormFile ImageName)
+        {
+            if (ImageName != null && ImageName.Length > 0)
+            {
+                var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads");
+                if (!Directory.Exists(uploadsFolder))
+                {
+                    Directory.CreateDirectory(uploadsFolder);
+                }
+
+                var timestamp = DateTime.Now.ToString("-yyyy-MM-ddHHmmss");
+                var fileName = Path.GetFileNameWithoutExtension(ImageName.FileName) + timestamp + Path.GetExtension(ImageName.FileName);
+                var filePath = Path.Combine(uploadsFolder, fileName);
+
+                using var fileStream = new FileStream(filePath, FileMode.Create);
+                await ImageName.CopyToAsync(fileStream);
+
+                return Ok(new { filePath = "/uploads/" + fileName, fileName });
+            }
+
+            return BadRequest("Invalid image file.");
+        }
+
+        //create product with the productcategory id
+        [HttpPost]
+        public async Task<IActionResult> CreateProduct(List<ProductModel> products)
+        {
+           
             if (ModelState.IsValid)
             {
             
                 try
                 {
-               
-
                         // Convert the product model to JSON
                         var json = JsonConvert.SerializeObject(products);
                         var content = new StringContent(json, Encoding.UTF8, "application/json");
@@ -128,25 +108,16 @@ namespace MyCaRt.Controllers
                         // Check if the request was successful
                         if (!response.IsSuccessStatusCode)
                         {
-                        if (!await SetCategoryDataAsync())
-                        {
-                            return NotFound();
-                        }
                         var errorContent = await response.Content.ReadAsStringAsync();
                         TempData["ErrorMessage"] = errorContent;
-                        return View(products);
+                        return Json(new { success = false, errorContent });
                     }
-                    
 
-                    TempData["SuccessMessage"] = "Products created successfully!";
-                    return RedirectToAction(nameof(CreateProduct));
+                    return Ok(new { success = true, message = "Products added successfully." });
+
                 }
                 catch (Exception ex)
                 {
-                    if (!await SetCategoryDataAsync())
-                    {
-                        return NotFound();
-                    }
                     TempData["ErrorMessage"] = "Server error please try later.";
                     return View(products);
                 }
@@ -154,12 +125,12 @@ namespace MyCaRt.Controllers
 
 
             // If model state is not valid, re-render the form with validation errors
-            if (!await SetCategoryDataAsync())
-            {
-                return NotFound();
-            }
-            //TempData["ErrorMessage"] = "Select the filepath.";
-            return View(products);
+            var errors = ModelState
+             .SelectMany(ms => ms.Value.Errors.Select(e => new { Field = ms.Key, Error = e.ErrorMessage }))
+             .ToList();
+
+            return Json(new { success = false, errors });
+
         }
 
 //list of full product

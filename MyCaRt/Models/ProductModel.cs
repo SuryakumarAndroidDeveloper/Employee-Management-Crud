@@ -20,6 +20,7 @@ namespace MyCaRt.Models
         public decimal? Product_Price { get; set; }
 
         [Required]
+
         public string? Product_Description { get; set; }
 
         [Required]

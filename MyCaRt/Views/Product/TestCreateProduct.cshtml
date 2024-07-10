@@ -1,5 +1,4 @@
 ﻿@model List<MyCaRt.Models.ProductModel>
-
 @{
     ViewData["Title"] = "Create Product";
 }
@@ -52,52 +51,9 @@
 <h2>Create Product</h2>
 <div class="container">
     <form enctype="multipart/form-data" id="productForm">
-        <div id="productFields" >
-            <div class="product-field">
-                <div class="form-group row">
-                    <div class="col-md-3">
-                        <label asp-for="@Model[0].Product_Category" id="Product_Category" class="control-label">Choose Category</label>
-                        <select asp-for="@Model[0].Product_Category" name="[0].Product_Category" class="form-control form-control-sm custom-select productcategory" asp-items="@ViewBag.CategoryData">
-                            <option id="productcategory" value="">Select Product Category</option>
-                        </select>
-                        <span asp-validation-for="@Model[0].Product_Category" class="text-danger"></span>
-                    </div>
-                    <div class="col-md-3">
-                        <label asp-for="@Model[0].Product_Code" class="control-label">Product Code</label>
-                        <input asp-for="@Model[0].Product_Code" class="form-control form-control-sm" />
-                        <span asp-validation-for="@Model[0].Product_Code" class="text-danger"></span>
-                        <span id="_0_Product_Code_Error" class="text-danger"></span>
-                    </div>
-                    <div class="col-md-3">
-                        <label asp-for="@Model[0].Product_Name" class="control-label">Product Name</label>
-                        <input asp-for="@Model[0].Product_Name" class="form-control form-control-sm" />
-                        <span asp-validation-for="@Model[0].Product_Name" class="text-danger"></span>
-                    </div>
-                    <div class="col-md-3">
-                        <label asp-for="@Model[0].Product_Price" class="control-label">Product Price</label>
-                        <input type="decimal" asp-for="@Model[0].Product_Price" class="form-control form-control-sm" />
-                        <span id="_0_Product_Price_Error" asp-validation-for="@Model[0].Product_Price" class="text-danger"></span>
-                    </div>
-                    <div class="col-md-3">
-                        <label asp-for="@Model[0].Product_Description" class="control-label">Description</label>
-                        <input asp-for="@Model[0].Product_Description" class="form-control form-control-sm" />
-                        <span asp-validation-for="@Model[0].Product_Description" class="text-danger"></span>
-                    </div>
-                    <div class="col-md-3">
-                        <label asp-for="@Model[0].Available_Quantity" class="control-label">Available Quantity</label>
-                        <input type="number" asp-for="@Model[0].Available_Quantity" class="form-control form-control-sm" />
-                        <span asp-validation-for="@Model[0].Available_Quantity" class="text-danger"></span>
-                    </div>
-                    <div class="col-md-3">
-                        <label asp-for="@Model[0].ImageName" class="control-label">Select Image</label>
-                        <input type="file" name="ImageName" class="form-control form-control-sm" onchange="uploadImage(this, 0)" />
-                        <span id="filepathError" class="text-danger"></span>
-                        <input type="hidden" name="[0].FilePath" />
-                        <input type="hidden" name="[0].ImageName"/>
-                    </div>
-                </div>
-                
-            </div>
+        <div id="productFields" class="my-form">
+
+
         </div>
         <button type="button" id="addSameCategoryProduct" class="btn btn-primary">Add Same Category Product</button>
         <button type="submit" class="btn btn-success">Submit</button>
@@ -110,7 +66,7 @@
         function uploadImage(input, index) {
             var formData = new FormData();
             formData.append("ImageName", input.files[0]);
-            //console.log(formData);
+           // console.log(formData);
             $.ajax({
                 url: '/Product/UploadImage',
                 type: 'POST',
@@ -133,11 +89,16 @@
             });
         }
         $(document).ready(function () {
+            var categoryData = @Html.Raw(Json.Serialize(ViewBag.CategoryData));
+           // console.log(categoryData);
+            addProductField(0, categoryData);
             // Change category value for all fields
             $(".productcategory").on("change", function () {
+
                 let value = $(".productcategory").val();
-                $("input[name$='Product_Category']").val(value);
-            });
+
+                $(".productcategory").val(value);
+            })
 
             // Display the error message in the field
             var errorMessage = '@TempData["ErrorMessage"]';
@@ -153,56 +114,15 @@
                 var productFields = $('#productFields');
                 var newIndex = productFields.children().length;
                 var selectedCategory = productFields.find('select.productcategory').val();
+              //  console.log(selectedCategory);
 
                 if (!selectedCategory) {
                     alert("Please choose the category first.");
                     return;
                 }
 
-                // Create new field dynamically
-                var newField = `
-                            <div class="product-field">
-                                <div class="form-group row">
-                                    <div class="col-md-3">
-                                        <input name="[${newIndex}].Product_Category" type="hidden" value="${selectedCategory}" />
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="control-label">Product Code</label>
-                                        <input class="form-control form-control-sm" name="[${newIndex}].Product_Code" />
-                                                <span class="text-danger product-code-error" id="_${newIndex}_Product_Code_Error"></span>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="control-label">Product Name</label>
-                                        <input class="form-control form-control-sm" name="[${newIndex}].Product_Name" />
-                                        <span class="text-danger" id="productNameError${newIndex}"></span>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="control-label">Product Price</label>
-                                        <input  class="form-control form-control-sm" name="[${newIndex}].Product_Price" />
-                                                <span class="text-danger" id="_${newIndex}_Product_Price_Error"></span>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="control-label">Description</label>
-                                        <input class="form-control form-control-sm" name="[${newIndex}].Product_Description" />
-                                        <span class="text-danger" id="productDescriptionError${newIndex}"></span>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="control-label">Available Quantity</label>
-                                        <input type="number" class="form-control form-control-sm" name="[${newIndex}].Available_Quantity" />
-                                        <span class="text-danger" id="availableQuantityError${newIndex}"></span>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="control-label">Select Image</label>
-                                                <input type="file" class="form-control form-control-sm" name="ImageName" onchange="uploadImage(this, ${newIndex})"/>
-                                        <span class="text-danger" id="filepathError${newIndex}"></span>
-                                                        <input type="hidden" name="[${newIndex}].FilePath" />
-                                        <input type="hidden" name="[${newIndex}].ImageName"/>
-                                    </div>
-                                </div>
-                                <button type="button" class="btn btn-danger remove-field">Remove</button>
-                            </div>`;
+                addProductField(newIndex, categoryData, selectedCategory);
 
-                productFields.append(newField);
             });
 
             // Remove the product details field
@@ -234,14 +154,14 @@
                 });
 
                 if (isValid) {
-                    var formData = new FormData(this);                    
+                    var formData = new FormData(this);
                     $.ajax({
                         url: '/Product/CreateProduct',
                         type: 'POST',
                         data: formData,
                         processData: false,
                         contentType: false,
-                        success: function (response) {                           
+                        success: function (response) {
                             if (response.success) {
                                 alert('Products added successfully.');
                                 window.location.reload();
@@ -251,7 +171,7 @@
                                 console.log(response.errorContent); // Debugging log
                                 handleProductCodeError(response.errorContent);
                             } else {
-                                alert('Failed to add products.'); 
+                                alert('Failed to add products.');
                             }
                         },
                         error: function (xhr, status, error) {
@@ -263,6 +183,63 @@
                     });
                 }
             });
+            function addProductField(index, category, selectedCategory) {
+                var newField = `
+                            <div class="product-field">
+                                <div class="form-group row">
+                                            <div class="col-md-3" ${index !== 0 ? 'style="display: none;"' : ''}>
+                                        <label class="control-label">Choose Category</label>
+                                                        <select class="form-control form-control-sm custom-select productcategory" name="[${index}].Product_Category" >
+                                                    <option value="">Select Category</option>`;
+                // Ensure category is an array and iterate over it to create options
+                if (Array.isArray(category)) {
+                    category.forEach(function (c) {
+                        newField += `<option value="${c.value}"${c.value === selectedCategory ? 'selected' : ''}>${c.text}</option>`;
+                    });
+                }
+
+                newField += `  </select>
+                                        <span class="text-danger"></span>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="control-label">Product Code</label>
+                                        <input class="form-control form-control-sm" name="[${index}].Product_Code" />
+                                        <span class="text-danger product-code-error" id="_${index}_Product_Code_Error"></span>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="control-label">Product Name</label>
+                                        <input class="form-control form-control-sm" name="[${index}].Product_Name" />
+                                        <span class="text-danger" id="productNameError${index}"></span>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="control-label">Product Price</label>
+                                        <input class="form-control form-control-sm" name="[${index}].Product_Price" />
+                                        <span class="text-danger" id="_${index}_Product_Price_Error"></span>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="control-label">Description</label>
+                                        <input class="form-control form-control-sm" name="[${index}].Product_Description" />
+                                        <span class="text-danger" id="productDescriptionError${index}"></span>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="control-label">Available Quantity</label>
+                                        <input type="number" class="form-control form-control-sm" name="[${index}].Available_Quantity" />
+                                        <span class="text-danger" id="availableQuantityError${index}"></span>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="control-label">Select Image</label>
+                                                    <input type="file" class="form-control form-control-sm" name="ImageName" onchange="uploadImage(this, ${index})"  />
+                                        <span class="text-danger" id="filepathError${index}"></span>
+                                                <input type="hidden" name="[${index}].FilePath" />
+                                                <input type="hidden" name="[${index}].ImageName"/>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-danger remove-field">Remove</button>
+                            </div>`;
+
+                $('#productFields').append(newField);
+            }
+
             function handleErrors(errors) {
                 // Clear previous error messages
                 $('.text-danger').text('').hide();
@@ -273,7 +250,21 @@
                         //console.log(field);
                         var errorMessage = error.error;
                         //console.log(errorMessage);
-                        $('#'+field+'_Error').text(errorMessage).show();
+                        $('#' + field + '_Error').text(errorMessage).show();
+                    }
+                });
+            }
+            function handleErrors(errors) {
+                // Clear previous error messages
+                $('.text-danger').text('').hide();
+                errors.forEach(function (error) {
+                    //console.log(error);  // Debugging log
+                    if (error.field && error.error) {
+                        var field = error.field.replace(/\[/g, '_').replace(/\./g, '_').replace(/\]/g, '');
+                        //console.log(field);
+                        var errorMessage = error.error;
+                        //console.log(errorMessage);
+                        $('#' + field + '_Error').text(errorMessage).show();
                     }
                 });
             }
@@ -284,14 +275,14 @@
                 try {
                     var errors = JSON.parse(errorContent);
                     if (errors && Array.isArray(errors)) {
-                       // console.log(errors);
+                        // console.log(errors);
                         errors.forEach(function (error) {
                             if (error.field && error.error) {
                                 var field = error.field.replace(/\[/g, '_').replace(/\./g, '_').replace(/\]/g, '');
-                              //  console.log(field);
+                                //  console.log(field);
                                 var errorMessage = error.error;
-                              //  console.log(errorMessage);
-                                $('#'+field+'_Error').text(errorMessage).show();
+                                //  console.log(errorMessage);
+                                $('#' + field + '_Error').text(errorMessage).show();
                             }
                         });
                     } else {
