@@ -45,6 +45,22 @@
         padding: 0.25rem 0.2rem;
         font-size: 0.75rem;
     }
+
+    img {
+        max-width: 100px;
+        max-height: 100px;
+        margin-top: 10px;
+    }
+
+    .file-input-container {
+        display: flex;
+        align-items: center;
+        gap: 10px; /* Adjust the gap as needed */
+    }
+
+        .file-input-container img {
+            display: none;
+        }
 </style>
 <hr />
 
@@ -64,9 +80,20 @@
     <script>
         //upload the image in local and get the path of the image
         function uploadImage(input, index) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+
+                reader.onload = function (e) {
+                    // Display the image preview
+                    var previewElement = document.getElementById('imagePreview' + index);
+                    previewElement.src = e.target.result;
+                    previewElement.style.display = 'inline';
+                }
+
+                reader.readAsDataURL(input.files[0]);
             var formData = new FormData();
             formData.append("ImageName", input.files[0]);
-           // console.log(formData);
+            // console.log(formData);
             $.ajax({
                 url: '/Product/UploadImage',
                 type: 'POST',
@@ -87,6 +114,7 @@
                     alert('Error uploading image: ' + error);
                 }
             });
+        }
         }
         $(document).ready(function () {
             var categoryData = @Html.Raw(Json.Serialize(ViewBag.CategoryData));
@@ -228,11 +256,14 @@
                                     </div>
                                     <div class="col-md-3">
                                         <label class="control-label">Select Image</label>
+                                                <div class="file-input-container" ">
                                                     <input type="file" class="form-control form-control-sm" name="ImageName" onchange="uploadImage(this, ${index})"  />
                                         <span class="text-danger" id="filepathError${index}"></span>
                                                 <input type="hidden" name="[${index}].FilePath" />
                                                 <input type="hidden" name="[${index}].ImageName"/>
-                                    </div>
+                                                                 <img id="imagePreview${index}" src="#" alt="Image Preview" style="display:none; width:100px; height:100px;"/>
+                                            </div>
+                                                                 </div>
                                 </div>
                                 <button type="button" class="btn btn-danger remove-field">Remove</button>
                             </div>`;

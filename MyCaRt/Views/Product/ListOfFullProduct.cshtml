@@ -93,10 +93,11 @@
 
 <form method="post" id="productForm">
     <div class="form-group">
-        <label for="Customer_FName" class="control-label">Customer Name</label>
+@*         <label for="Customer_FName" class="control-label">Customer Name</label>
         <select id="Customer_FName" name="Customer_FName" class="form-control" asp-items="@ViewBag.categoryData">
             <option value="">Select Customer Name</option>
-        </select>
+        </select> *@
+        <input id="Customer_Id" name="Customer_Id" type="hidden" value="@ViewBag.UserId" />
     </div>
 
     <div class="form-group">
@@ -238,15 +239,16 @@
                 var card = $(this).closest('.card');
                 var productId = card.find('input[name="Product_Id"]').val();
                 var quantity = card.find('input[name="Quantity"]').val();
-                var customerName = $('#Customer_FName').val();
+                //var customerName = $('#Customer_FName').val();
+                var customerId = $('#Customer_Id').val();
 
-                if (!customerName) {
-                    alert('Please select a customer.');
+                if (!customerId) {
+                    alert('Login to Order this product.');
                     return;
                 }
 
                 var cartData = {
-                    Customer_FName: customerName,
+                    Customer_FName: customerId,
                     Product_Id: productId,
                     Quantity: quantity
                 };
@@ -277,15 +279,16 @@
                 var card = $(this).closest('.card');
                 var productId = card.find('input[name="Product_Id"]').val();
                // var quantity = card.find('input[name="Quantity"]').val();
-                var customerName = $('#Customer_FName').val();
+               // var customerName = $('#Customer_FName').val();
+                var customerId = $('#Customer_Id').val();
 
-                if (!customerName) {
-                    alert('Please select a customer.');
+                if (!customerId) {
+                    alert('Login to like this Product.');
                     return;
                 }
 
                 var cartData = {
-                    Customer_FName: customerName,
+                    Customer_FName: customerId,
                     Product_Id: productId
                    // Quantity: quantity
                 };

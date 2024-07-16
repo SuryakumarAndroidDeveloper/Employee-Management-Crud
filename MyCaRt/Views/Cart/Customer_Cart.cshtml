@@ -1,10 +1,12 @@
 ﻿@model IEnumerable<MyCaRt.Models.DisplayCartModel>
 
 <div class="form-group">
-    <label for="Customer_FName" class="control-label">Customer Name</label>
+@*     <label for="Customer_FName" class="control-label">Customer Name</label>
     <select id="Customer_FName" name="Customer_FName" class="form-control" asp-items="@ViewBag.categoryData">
         <option value="">Select Customer Name</option>
-    </select>
+    </select> *@
+    
+    <input id="Customer_Id" name="Customer_Id" type="hidden" value="@ViewBag.UserId" />
 </div>
 
 
@@ -351,8 +353,133 @@
                     cartContinue.attr('disabled', 'disabled');
                 }
             }
+            //modified for cusomer cart
+            var customerId = $('#Customer_Id').val();
+            var cartContainer = $('#cart-container');
+            var cartTotalContainer = $('#cart-total');
+            var cartContinueContainer = $('#cart-continue');
+            function loadCart(customerId) {
+                cartContainer.empty();
+                cartTotalContainer.empty();
+                cartContinueContainer.empty();
+                if (customerId) {
+                    $.ajax({
+                        type: 'GET',
+                        url: '/Cart/GetCartByCustomer',
+                        data: { Customer_Id: customerId },
+                        success: function (data) {
+                            console.log(data);
+                            if (data.length > 0) {
+                                var table = $('<table class="table table-bordered"><thead><tr><th>CartItem Id</th><th>Product Id</th><th>Product Name</th><th>Quantity</th><th>Price</th><th>Total</th><th>Action</th></tr></thead><tbody></tbody></table>');
+                                var tbody = table.find('tbody');
+                                var totalPrice = 0;
 
-            $('#Customer_FName').change(function () {
+                                $.each(data, function (index, item) {
+                                    var row = $('<tr></tr>');
+                                    var itemTotal = item.quantity * item.product_Price;
+                                    row.append('<td>' + item.cartItem_Id + '</td>');
+                                    row.append('<td>' + item.product_Id + '</td>');
+                                    row.append('<td>' + item.product_Name + '</td>');
+                                    row.append('<td><div class="quantity-controls">' +
+                                        '<button class="quantity-decrement">-</button>' +
+                                        '<input type="number" min="1" max="' + item.available_Quantity + '"  data-cartitemid="' + item.cartItem_Id + '" value="' + item.quantity + '" class="quantity-input" />' +
+                                        '<button class="quantity-increment">+</button>' +
+                                        '</div></td>');
+
+                                    // row.append('<td><input type="number" class="quantity-input" data-cartitemid="' + item.cartItem_Id + '" value="' + item.quantity + '" min="1"></td>');
+                                    //row.append('<td>' + item.quantity + '</td>');
+                                    row.append('<td>' + item.product_Price + '</td>');
+                                    row.append('<td>' + itemTotal + '</td>');
+                                    row.append('<td><button class="btn btn-danger delete-btn" data-cartitemid="' + item.cartItem_Id + '"> Remove </button></td > ');
+                                    tbody.append(row);
+                                    totalPrice += itemTotal;
+                                });
+
+                                cartContainer.append(table);
+                                cartTotalContainer.append('<p>Total Price: ' + totalPrice.toFixed(2) + '</p>');
+                                cartContinueContainer.append('<button id="continue-btn" class="btn btn-primary">Continue</button>');
+
+                                // Call updateTotalPrice to ensure the total is correct initially
+                                updateTotalPrice();
+
+                                // Event delegation for quantity input change
+                                $('#cart-container').on('change', '.quantity-input', function () {
+                                    var newQuantity = $(this).val();
+                                    var cartItemId = $(this).data('cartitemid');
+                                    updateQuantity(cartItemId, newQuantity);
+                                });
+                                // $('.quantity-input').on('change', function () {
+                                //    var newQuantity = $(this).val();
+                                //  var cartItemId = $(this).data('cartitemid');
+                                //  updateQuantity(cartItemId, newQuantity);
+                                //});
+                                // Attach click event for delete button
+                                $('.delete-btn').on('click', function () {
+                                    var cartItemId = $(this).data('cartitemid');
+                                    deleteCartItem(cartItemId);
+                                });
+                                $('#continue-btn').on('click', function () {
+                                    var customerId = $('#Customer_Id').val();
+                                    var customerName = $('#Customer_Id option:selected').text();
+                                    var customerDetails = '<div class="card"><div class="card-body"><h5 class="card-title">Purchase Summary</h5><p class="card-text">Confirm the Product Details.</p><p class="card-text" hidden><strong>Customer ID: </strong>' + customerId + '</p><div id="customer-cart-container"></div></div></div>';
+
+                                    $('#customer-details-card').html(customerDetails).show();
+
+                                    $.ajax({
+                                        type: 'GET',
+                                        url: '/Cart/GetCartByCustomer',
+                                        data: { Customer_Id: customerId },
+                                        success: function (data) {
+                                            var cartTable = $('<table class="table table-bordered"><thead><tr><th>CartItem Id</th><th>Product Id</th><th>Product Name</th><th>Quantity</th><th>Price</th><th>Total</th></tr></thead><tbody></tbody></table>');
+                                            var cartTbody = cartTable.find('tbody');
+                                            var totalPrice = 0;
+
+                                            $.each(data, function (index, item) {
+                                                var row = $('<tr></tr>');
+                                                var itemTotal = item.quantity * item.product_Price;
+                                                row.append('<td>' + item.cartItem_Id + '</td>');
+                                                row.append('<td>' + item.product_Id + '</td>');
+                                                row.append('<td>' + item.product_Name + '</td>');
+                                                row.append('<td>' + item.quantity + '</td>');
+                                                row.append('<td>' + item.product_Price + '</td>');
+                                                row.append('<td>' + itemTotal + '</td>');
+
+                                                cartTbody.append(row);
+                                                // <button class="btn btn-danger delete-btn" data-cartitemid="' + item.cartItem_Id + '"> R </button>
+                                                totalPrice += itemTotal;
+                                            });
+
+                                            $('#customer-cart-container').html(cartTable);
+                                            $('#customer-cart-container').append(' <button id="pay-btn" class="btn btn-sm btn-outline-secondary add-to-cart" style="margin-left:580px"> PAY  ' + totalPrice.toFixed(2) + '</button>');
+                                            $('#pay-btn').on('click', function () {
+                                                $('#payModal').modal('show');
+                                            });
+                                        },
+                                        error: function () {
+                                            alert('Sorry No CartItem Found for you go and add product to cart .');
+                                        }
+                                    });
+                                });
+                            } else {
+                                cartContainer.append('<p>No items in cart for this customer.</p>');
+                            }
+                        },
+                        error: function () {
+                           // alert('Sorry No CartItem Found for you go and add product to cart .'); // Fixed syntax error here
+                            cartContainer.append('<p>No items in cart for this customer.</p>');
+                            cartTotalContainer.empty();
+                            // cartContinueContainer.empty();
+                        }
+                    });
+                } else {
+                    cartContainer.empty();
+                    cartTotalContainer.empty();
+                    cartContinueContainer.empty();
+                }
+
+            }
+
+ /*           $('#Customer_FName').change(function () {
                 var customerId = $(this).val();
                 var cartContainer = $('#cart-container');
                 var cartTotalContainer = $('#cart-total');
@@ -474,6 +601,15 @@
                     cartTotalContainer.empty();
                     cartContinueContainer.empty();
                 }
+            });*/
+
+            // Load the cart on page load
+            loadCart(customerId);
+
+            // Re-load the cart if the customer ID changes (if required)
+            $('#Customer_Id').change(function () {
+                var customerId = $(this).val();
+                loadCart(customerId);
             });
 
             $('#paymentForm').on('submit', function (e) {
@@ -649,7 +785,7 @@
             }
 
             function placeOrder(paymentId) {
-                var customerId = $('#Customer_FName').val();
+                var customerId = $('#Customer_Id').val();
                // var cartItemId = $(this).data('cartitemid');
                 // Gather product IDs, quantities, and total price from the cart table
                 var products = [];
@@ -682,7 +818,13 @@
                     data: JSON.stringify(orderData),
                     success: function (response) {
                         alert('Order placed successfully!');
-                        window.location.href = '@Url.Action("ListOfCustomers", "Customer")';
+                        var redirectUrl = '@Url.Action("MyOrders", "Customer", new { Customer_Id = "__customerId__" })';
+                        redirectUrl = redirectUrl.replace('__customerId__', customerId);
+                        window.location.href = redirectUrl;
+                        
+                        
+                        //window.location.href = '@Url.Action("ListOfCust", "Product")';
+      
                         // Additional actions like redirecting to another page or refreshing the cart can be done here
                     },
                     error: function () {
@@ -714,9 +856,10 @@
                     url: '/Cart/DeleteCartItem',
                     data: { cartItemId: cartItemId },
                     success: function (response) {
-                        console.log(response);
+                       // console.log(response);
                         // Refresh cart data after delete
-                        $('#Customer_FName').trigger('change');
+                        $('#Customer_Id').trigger('change');
+                        location.reload();
                     },
                     error: function () {
                         alert('Failed to delete item.');

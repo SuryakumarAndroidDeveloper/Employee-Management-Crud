@@ -46,6 +46,23 @@
         padding: 0.25rem 0.2rem;
         font-size: 0.75rem;
     }
+
+    img {
+        max-width: 100px;
+        max-height: 100px;
+        margin-top: 10px;
+    }
+
+    .file-input-container {
+        display: flex;
+        align-items: center;
+        gap: 10px; /* Adjust the gap as needed */
+    }
+
+        .file-input-container img {
+            display: none;
+        }
+
 </style>
 <hr />
 
@@ -90,10 +107,13 @@
                     </div>
                     <div class="col-md-3">
                         <label asp-for="@Model[0].ImageName" class="control-label">Select Image</label>
+                        <div class="file-input-container">
                         <input type="file" name="ImageName" class="form-control form-control-sm" onchange="uploadImage(this, 0)" />
                         <span id="filepathError" class="text-danger"></span>
                         <input type="hidden" name="[0].FilePath" />
                         <input type="hidden" name="[0].ImageName"/>
+                        <img id="imagePreview0" src="#" alt="Image Preview" style="display:none; width:100px; height:100px;" />
+                        </div>
                     </div>
                 </div>
                 
@@ -108,29 +128,41 @@
     <script>
         //upload the image in local and get the path of the image
         function uploadImage(input, index) {
-            var formData = new FormData();
-            formData.append("ImageName", input.files[0]);
-            //console.log(formData);
-            $.ajax({
-                url: '/Product/UploadImage',
-                type: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false,
-                success: function (response) {
-                    if (response.filePath) {
-                        // Find the closest product field and set the hidden file path input
-                        $(input).closest('.product-field').find('input[name$=".FilePath"]').val(response.filePath);
-                        $(input).closest('.product-field').find('input[name$=".ImageName"]').val(response.fileName);
-                    } else {
-                        alert('Failed to upload image.');
-                    }
-                },
-                error: function (xhr, status, error) {
-                    console.error('Error: ', error);
-                    alert('Error uploading image: ' + error);
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+
+                reader.onload = function (e) {
+                    // Display the image preview
+                    var previewElement = document.getElementById('imagePreview' + index);
+                    previewElement.src = e.target.result;
+                    previewElement.style.display = 'inline';
                 }
-            });
+
+                reader.readAsDataURL(input.files[0]);
+                var formData = new FormData();
+                formData.append("ImageName", input.files[0]);
+                //console.log(formData);
+                $.ajax({
+                    url: '/Product/UploadImage',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (response) {
+                        if (response.filePath) {
+                            // Find the closest product field and set the hidden file path input
+                            $(input).closest('.product-field').find('input[name$=".FilePath"]').val(response.filePath);
+                            $(input).closest('.product-field').find('input[name$=".ImageName"]').val(response.fileName);
+                        } else {
+                            alert('Failed to upload image.');
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Error: ', error);
+                        alert('Error uploading image: ' + error);
+                    }
+                });
+            }
         }
         $(document).ready(function () {
             // Change category value for all fields
@@ -193,11 +225,15 @@
                                     </div>
                                     <div class="col-md-3">
                                         <label class="control-label">Select Image</label>
+                                                <div class="file-input-container" ">
                                                 <input type="file" class="form-control form-control-sm" name="ImageName" onchange="uploadImage(this, ${newIndex})"/>
                                         <span class="text-danger" id="filepathError${newIndex}"></span>
                                                         <input type="hidden" name="[${newIndex}].FilePath" />
                                         <input type="hidden" name="[${newIndex}].ImageName"/>
-                                    </div>
+
+                                                <img id="imagePreview${newIndex}" src="#" alt="Image Preview" style="display:none; width:100px; height:100px;"/>
+                                            </div>
+                                                </div>
                                 </div>
                                 <button type="button" class="btn btn-danger remove-field">Remove</button>
                             </div>`;

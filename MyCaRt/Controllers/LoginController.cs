@@ -5,6 +5,7 @@ using System.Text;
 using Microsoft.AspNetCore.Http;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using MyCaRt.Helper;
+using System.Data;
 
 
 namespace MyCaRt.Controllers
@@ -60,34 +61,38 @@ namespace MyCaRt.Controllers
             var result = await response.Content.ReadAsStringAsync();
             var data = JsonConvert.DeserializeObject<dynamic>(result);
 
-            if (data.message == "Login successful")
+                if (data.message == "Login successful")
             {
                 HttpContext.Session.SetString("User", model.Email);
                 HttpContext.Session.SetString("SessionId", (string)data.sessionId);
+                HttpContext.Session.SetInt32("Role", (int)data.role);
+                HttpContext.Session.SetInt32("Userid", (int)data.userid);
 
                 // Retrieving session values for logging
                 var userEmail = HttpContext.Session.GetString("User");
                 var sessionId = HttpContext.Session.GetString("SessionId");
+                var roleid = HttpContext.Session.GetInt32("Role");
+                var userid = HttpContext.Session.GetInt32("Userid");
 
                 // Logging to console (this will log in your server's console, not the browser's console)
                 Console.WriteLine($"User Email: {userEmail}");
                 Console.WriteLine($"Session ID: {sessionId}");
-                return RedirectToAction("Dashboard");
+                Console.WriteLine($"Role ID: {roleid}");
+                Console.WriteLine($"User ID: {userid}");
+
+                if (data.role == 9001) // User role 
+                {
+                    return RedirectToAction("UserDashboard", "User");
+                   
+                }
+                else// Admin role
+                {
+                    return RedirectToAction("AdminDashboard", "Admin");
+                }
+                
             }
             ViewBag.Message = data.message;
             return View("Login_Register");
-        }
-
-        [HttpGet("Dashboard")]
-        public IActionResult Dashboard()
-        {
-            var userEmail = HttpContext.Session.GetString("User");
-            if (string.IsNullOrEmpty(userEmail))
-            {
-                return RedirectToAction("Login_Register");
-            }
-            ViewBag.UserEmail = userEmail;
-            return View();
         }
 
         [HttpPost("Logout")]
@@ -96,6 +101,9 @@ namespace MyCaRt.Controllers
             HttpContext.Session.Clear();
             return RedirectToAction("Login_Register");
         }
+
+
+
 
 
 

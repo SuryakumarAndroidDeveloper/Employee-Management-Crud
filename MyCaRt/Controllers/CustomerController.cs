@@ -1,12 +1,16 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using MyCaRt.Models;
 using Newtonsoft.Json;
+using System.Data;
 using System.Net;
 using System.Text;
 using static MyCaRt.Controllers.ProductController;
+using static MyCaRt.Enum.@enum;
 
 namespace MyCaRt.Controllers
 {
+    [CustomAuthorize(UserRoles.Admin)]
     public class CustomerController : Controller
     {
         public readonly HttpClient _httpClient;
@@ -17,11 +21,24 @@ namespace MyCaRt.Controllers
             _config = config;
             _httpClient = new HttpClient();
             _httpClient.BaseAddress = new Uri(_config["ApiSettings:BaseUri"]);
+           
+        }
+        protected int? UserRole;
+        protected int? UserId;
+
+        public override void OnActionExecuting(ActionExecutingContext context)
+        {
+            UserRole = HttpContext.Session.GetInt32("Role");
+            ViewBag.UserRole = UserRole;
+            UserId = HttpContext.Session.GetInt32("Userid");
+            ViewBag.UserId = UserId;
+            base.OnActionExecuting(context);
         }
 
         public async Task<IActionResult> Customer()
         {
-            List<ProductCategoryModel> categoryData = new List<ProductCategoryModel>();
+            
+        List<ProductCategoryModel> categoryData = new List<ProductCategoryModel>();
 
             HttpResponseMessage response = await _httpClient.GetAsync(_httpClient.BaseAddress + "/ProductCategory/GetProductCategory");
 
@@ -38,7 +55,7 @@ namespace MyCaRt.Controllers
 
             ViewBag.categoryData = categoryData;
 
-            return View();
+                return View();
         }
 
 
@@ -47,7 +64,7 @@ namespace MyCaRt.Controllers
         [HttpPost]
         public async Task<IActionResult> Customer(CustomerModel customer)
         {
-            List<ProductCategoryModel> categoryData = new List<ProductCategoryModel>();
+                List<ProductCategoryModel> categoryData = new List<ProductCategoryModel>();
 
             HttpResponseMessage response1 = await _httpClient.GetAsync(_httpClient.BaseAddress + "/ProductCategory/GetProductCategory");
 
@@ -95,15 +112,13 @@ namespace MyCaRt.Controllers
                 ModelState.AddModelError(string.Empty, "Server error. Please contact the administrator.");
                 return View(customer);
             }
-
         }
 
         //display the customer
-       
+
         public async Task<IActionResult> ListOfCustomers()
         {
-
-            List<CustomerInterestedCategory> customers = new List<CustomerInterestedCategory>();
+                List<CustomerInterestedCategory> customers = new List<CustomerInterestedCategory>();
 
             HttpResponseMessage response = await _httpClient.GetAsync(_httpClient.BaseAddress + "/Customer/GetAllCustomer");
             if (response.IsSuccessStatusCode)
@@ -117,20 +132,60 @@ namespace MyCaRt.Controllers
             }
 
             return View(customers);
-        }
+
+            }
+
 
 
         //edit the customerdetails the customerdetails fetch to the field based on customerid
+        [CustomAuthorize(UserRoles.Admin, UserRoles.User)]
         public IActionResult Edit()
         {
             return View();
         }
 
         [HttpGet]
+        [CustomAuthorize(UserRoles.Admin, UserRoles.User)]
+        public async Task<IActionResult> ViewProfile(int id)
+        {
+            int? role = UserRole;
+            int? userid = UserId;
+
+            if (role == (int)UserRoles.Admin || (role == (int)UserRoles.User && userid == id))
+            {
+                CustomerModel customer = null;
+
+            HttpResponseMessage response = await _httpClient.GetAsync($"{_httpClient.BaseAddress}/Customer/GetCustomerById?id={id}");
+            if (response.IsSuccessStatusCode)
+            {
+                string data = await response.Content.ReadAsStringAsync();
+                System.Diagnostics.Debug.WriteLine(data);
+                customer = JsonConvert.DeserializeObject<CustomerModel>(data);
+
+            }
+            else
+            {
+                ModelState.AddModelError(string.Empty, "Server error. Please contact the administrator.");
+                return BadRequest("Cannot View Profile.");
+            }
+           
+            return View(customer);
+            }
+            TempData["AlertMessage"] = "You need login to access this page.";
+            return RedirectToAction("Login_Register", "Login");
+        }
+
+        [HttpGet]
+        [CustomAuthorize(UserRoles.Admin, UserRoles.User)]
         public async Task<IActionResult> Edit(int id)
         {
+            int? role = UserRole;
+            int? userid = UserId;
 
-            CustomerModel customer = null;
+            if (role == (int)UserRoles.Admin || (role == (int)UserRoles.User && userid == id))
+            {
+
+                CustomerModel customer = null;
 
             HttpResponseMessage response = await _httpClient.GetAsync($"{_httpClient.BaseAddress}/Customer/GetCustomerById?id={id}");
             if (response.IsSuccessStatusCode)
@@ -154,23 +209,29 @@ namespace MyCaRt.Controllers
                 }
 
                 ViewBag.categoryData = categoryData;
-
-
             }
             else
             {
                 ModelState.AddModelError(string.Empty, "Server error. Please contact the administrator.");
             }
             return View(customer);
-
+            }
+            TempData["AlertMessage"] = "You need login to access this page.";
+            return RedirectToAction("Login_Register", "Login");
         }
         //update the customer details based on customerid
 
         [HttpPost]
+        [CustomAuthorize(UserRoles.Admin, UserRoles.User)]
         public async Task<IActionResult> Edit(int id, CustomerModel customer)
         {
-            // Serialize the customer object to JSON
-            var json = JsonConvert.SerializeObject(customer);
+            int? role = UserRole;
+            int? userid = UserId;
+
+            if (role == (int)UserRoles.Admin || (role == (int)UserRoles.User && userid == id))
+            {
+                // Serialize the customer object to JSON
+                var json = JsonConvert.SerializeObject(customer);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
             // Get the list of product categories
@@ -196,8 +257,12 @@ namespace MyCaRt.Controllers
             // Check if the request was successful
             if (response.IsSuccessStatusCode)
             {
-                // Redirect to the list of customers
-                return RedirectToAction("ListOfCustomers");
+                    if (role == (int)UserRoles.Admin)
+                    {
+                        return RedirectToAction("ListOfCustomers");
+                    }
+                    TempData["SavedChanges"] = "Profile Updated Successfully";
+                return RedirectToAction("ViewProfile", new { id = userid });
             }
             else
             {
@@ -207,73 +272,107 @@ namespace MyCaRt.Controllers
                 Console.WriteLine($"Response Content: {responseContent}");
                 ModelState.AddModelError(string.Empty, $"Server error: {responseContent}");
                 return View(customer);
+
             }
+            }
+            TempData["AlertMessage"] = "You need login to access this page.";
+            return RedirectToAction("Login_Register", "Login");
         }
 
         //deactivate the customerdetails based on customerid
 
         [HttpPost]
+        [CustomAuthorize(UserRoles.Admin, UserRoles.User)]
         public async Task<IActionResult> Deactivate(int id)
 
         {
-            HttpResponseMessage response = await _httpClient.PostAsync($"{_httpClient.BaseAddress}/Customer/DeleteCustomerById?id={id}", null);
+            int? role = UserRole;
+            int? userid = UserId;
+
+            if (role == (int)UserRoles.Admin || (role == (int)UserRoles.User && userid == id))
+            {
+                HttpResponseMessage response = await _httpClient.PostAsync($"{_httpClient.BaseAddress}/Customer/DeleteCustomerById?id={id}", null);
 
             if (response.IsSuccessStatusCode)
             {
-
-                return RedirectToAction("ListOfCustomers");
+                    if (role == (int)UserRoles.Admin)
+                    {
+                        return RedirectToAction("ListOfCustomers");
+                    }
+                    TempData["AlertMessage"] = "Account Deleted!";
+                    return RedirectToAction("Login_Register", "Login");
+                
+               
             }
             else
             {
                 ModelState.AddModelError(string.Empty, "Server error. Please contact support.");
                 return RedirectToAction("ListOfCustomers");
             }
+            }
+            TempData["AlertMessage"] = "You need login to access this page.";
+            return RedirectToAction("Login_Register", "Login");
         }
 
         //myorders based on customerid
+        [CustomAuthorize(UserRoles.Admin, UserRoles.User)]
         public IActionResult MyOrders()
         {
-            return View();
-        }
+                return View();
+
+    }
+
 
         [HttpGet]
+        [CustomAuthorize(UserRoles.Admin, UserRoles.User)]
         public async Task<IActionResult> MyOrders(int Customer_Id)
         {
-
-            List<MyOrderModel> orderData = new List<MyOrderModel>();
-
-            HttpResponseMessage response = await _httpClient.GetAsync($"{_httpClient.BaseAddress}/Order/GetOrderByCustomer?customerId={Customer_Id}");
-
-            if (response.IsSuccessStatusCode)
+            int? role = UserRole;
+            int? userid = UserId;
+            if (role == (int)UserRoles.Admin || (role == (int)UserRoles.User && userid == Customer_Id))
             {
-                string data = await response.Content.ReadAsStringAsync();
-                orderData = JsonConvert.DeserializeObject<List<MyOrderModel>>(data);
-            }
-            else if (response.StatusCode == HttpStatusCode.NotFound)
-            {
-                ViewData["Message"] = "No orders found.";
+                List<MyOrderModel> orderData = new List<MyOrderModel>();
+
+                HttpResponseMessage response = await _httpClient.GetAsync($"{_httpClient.BaseAddress}/Order/GetOrderByCustomer?customerId={Customer_Id}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    string data = await response.Content.ReadAsStringAsync();
+                    orderData = JsonConvert.DeserializeObject<List<MyOrderModel>>(data);
+                }
+                else if (response.StatusCode == HttpStatusCode.NotFound)
+                {
+                    ViewData["Message"] = "No orders found.";
+                    return View(orderData);
+                }
+                else
+                {
+                    return BadRequest("Failed to load order data.");
+                }
+
                 return View(orderData);
             }
-            else
-            {
-                return BadRequest("Failed to load order data.");
-            }
+            /*TempData["AlertMessage"] = "You dont have access to this page.";*/
+            return RedirectToAction("MyOrders", new { Customer_Id = userid });
 
-            return View(orderData);
         }
         //get mywishlist based on customerid
-
+        [CustomAuthorize(UserRoles.Admin, UserRoles.User)]
         public IActionResult MyWishList()
         {
-            return View();
+                return View();
+
         }
 
         [HttpGet]
         public async Task<IActionResult> MyWishList(int Customer_Id)
         {
+            int? role = UserRole;
+            int? userid = UserId;
+            if (role == (int)UserRoles.Admin || (role == (int)UserRoles.User && userid == Customer_Id))
+            {
 
-
-            List<MyWishlistModel> wishListData = new List<MyWishlistModel>();
+                List<MyWishlistModel> wishListData = new List<MyWishlistModel>();
 
             HttpResponseMessage response = await _httpClient.GetAsync($"{_httpClient.BaseAddress}/WishList/GetWishListByCustomer?customerId={Customer_Id}");
 
@@ -293,7 +392,12 @@ namespace MyCaRt.Controllers
             }
 
             return View(wishListData);
+            }
+            /*TempData["AlertMessage"] = "You dont have access to this page.";*/
+            return RedirectToAction("MyWishList", new { Customer_Id = userid });
+
         }
+    
      
 
 

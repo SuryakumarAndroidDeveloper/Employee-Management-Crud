@@ -220,3 +220,58 @@ footer {
     width: @width;
     height: @height;
 }
+.useradminnav {
+    background: #0082e6;
+    height: 80px;
+    width: 100%;
+}
+
+label.useradminlogo {
+    color: white;
+    font-size: 35px;
+    line-height: 80px;
+    padding: 0 100px;
+    font-weight: bold;
+}
+
+.useradminul {
+    float: right;
+    margin-right: 20px;
+}
+
+.useradminulli {
+    display: inline-block;
+    line-height: 80px;
+    margin: 0 5px;
+}
+
+.useradminullia {
+    color: white;
+    font-size: 17px;
+    padding: 7px 13px;
+    border-radius: 3px;
+    text-transform: uppercase;
+}
+
+a.active, a:hover {
+    background: #1b9bff;
+    transition: .5s;
+}
+
+.logout:hover {
+    background: #1b9bff;
+    transition: .5s;
+}
+
+.logout {
+    display: inline-block;
+    background: #0082e6;
+    line-height: 50px;
+    border-color: #0082e6;
+    margin: 0 5px;
+    font-size: 17px;
+    text-transform: uppercase;
+}
+button{
+
+}

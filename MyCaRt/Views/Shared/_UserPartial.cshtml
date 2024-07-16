@@ -1,0 +1,34 @@
+﻿@{
+    var userId = @ViewBag.UserId; // Default to 0 if session value is null
+}
+<nav class="useradminnav">
+    <label class="useradminlogo">MyCaRt</label>
+    <ul class="useradminul">
+        <li class="useradminulli">
+            <a class="useradminullia active" href="#">DashBoard</a>
+        </li>
+        <li class="useradminulli">
+            <a class="useradminullia" asp-area="" asp-controller="Product" asp-action="ListOfFullProduct">Home</a>
+        </li>
+        <li class="useradminulli">
+            @Html.ActionLink("Orders", "MyOrders", "Customer", new { Customer_Id = userId }, new { @class = "useradminullia" })
+        </li>
+        <li class="useradminulli">
+            @Html.ActionLink("WishList", "MyWishList", "Customer", new { Customer_Id = userId }, new { @class = "useradminullia" })
+        </li>
+        <li class="useradminulli">
+            <a class="useradminullia" asp-area="" asp-controller="Cart" asp-action="Customer_Cart">Mycart</a>
+        </li>
+        <li class="useradminulli">
+            @Html.ActionLink("Profile", "ViewProfile", "Customer", new { id = userId }, new { @class = "useradminullia" })
+        </li>
+        <li class="useradminulli">
+            <form asp-controller="Login" asp-action="Logout" method="post">
+                <button class="logout" type="submit">
+                    Logout
+                </button>
+            </form>
+        </li>
+       
+    </ul>
+</nav>

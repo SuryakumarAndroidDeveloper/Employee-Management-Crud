@@ -9,6 +9,12 @@
         @TempData["SuccessMessage"]
     </div>
 }
+@if (TempData["AlertMessage"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["AlertMessage"]
+    </div>
+}
 @if(ViewBag.Message!=null){ 
     <div class="alert alert-danger">
         @ViewBag.Message

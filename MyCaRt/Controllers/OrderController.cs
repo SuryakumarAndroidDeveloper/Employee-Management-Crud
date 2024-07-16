@@ -2,9 +2,11 @@
 using MyCaRt.Models;
 using Newtonsoft.Json;
 using System.Text;
+using static MyCaRt.Enum.@enum;
 
 namespace MyCaRt.Controllers
 {
+    [CustomAuthorize(UserRoles.Admin, UserRoles.User)]
     public class OrderController : Controller
     {
         public readonly HttpClient _httpClient;

@@ -1,14 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using MyCaRt.Models;
 using Newtonsoft.Json;
 using System.Text;
-using static MyCaRt.Enum.@enum;
 
 namespace MyCaRt.Controllers
 {
-    [CustomAuthorize(UserRoles.Admin, UserRoles.User)]
     public class CartController : Controller
     {
         public readonly HttpClient _httpClient;
@@ -21,25 +18,13 @@ namespace MyCaRt.Controllers
             _httpClient.BaseAddress = new Uri(_config["ApiSettings:BaseUri"]);
 
         }
-        protected int? UserRole;
-        protected int? UserId;
-
-        public override void OnActionExecuting(ActionExecutingContext context)
-        {
-            UserRole = HttpContext.Session.GetInt32("Role");
-            ViewBag.UserRole = UserRole;
-            UserId = HttpContext.Session.GetInt32("Userid");
-            ViewBag.UserId = UserId;
-            base.OnActionExecuting(context);
-        }
 
         //add the product to cart
 
         [HttpPost]
         public async Task<IActionResult> AddToCart(CartItemModel cartItem)
         {
-
-                if (ModelState.IsValid)
+            if (ModelState.IsValid)
             {
                 try
                 {
@@ -116,38 +101,36 @@ namespace MyCaRt.Controllers
             }
 
             return View("Index");
-         
         }
         //customer cart page
         public async Task<IActionResult> Customer_Cart()
         {
 
-                /*
-                            List<Customer_NameModel> customerData = new List<Customer_NameModel>();
 
-                            HttpResponseMessage response = await _httpClient.GetAsync(_httpClient.BaseAddress + "/Customer/GetAllCustomer_Name");
+            List<Customer_NameModel> customerData = new List<Customer_NameModel>();
 
-                            if (response.IsSuccessStatusCode)
-                            {
-                                string data = await response.Content.ReadAsStringAsync();
-                                customerData = JsonConvert.DeserializeObject<List<Customer_NameModel>>(data);
-                            }
-                            else
-                            {
-                                ModelState.AddModelError(string.Empty, "Failed to load customer data.");
-                            }
+            HttpResponseMessage response = await _httpClient.GetAsync(_httpClient.BaseAddress + "/Customer/GetAllCustomer_Name");
 
-                            var customerNameItems = customerData.Select(c => new SelectListItem
-                            {
-                                Text = c.Customer_FName,
-                                Value = c.Customer_Id.ToString()
-                            }).ToList();
+            if (response.IsSuccessStatusCode)
+            {
+                string data = await response.Content.ReadAsStringAsync();
+                customerData = JsonConvert.DeserializeObject<List<Customer_NameModel>>(data);
+            }
+            else
+            {
+                ModelState.AddModelError(string.Empty, "Failed to load customer data.");
+            }
 
-                            ViewBag.categoryData = customerNameItems;*/
+            var customerNameItems = customerData.Select(c => new SelectListItem
+            {
+                Text = c.Customer_FName,
+                Value = c.Customer_Id.ToString()
+            }).ToList();
+
+            ViewBag.categoryData = customerNameItems;
 
 
-                return View();
-         
+            return View();
         }
 
 //get cart based on customerid
@@ -155,12 +138,7 @@ namespace MyCaRt.Controllers
         [HttpGet]
         public async Task<IActionResult> GetCartByCustomer(int Customer_Id)
         {
-
-            int? userid = UserId;
-
-            if ( userid == Customer_Id)
-            {
-                List<DisplayCartModel> cartData = new List<DisplayCartModel>();
+            List<DisplayCartModel> cartData = new List<DisplayCartModel>();
 
             HttpResponseMessage response = await _httpClient.GetAsync($"{_httpClient.BaseAddress}/Cart/GetCartByCustomer?customerId={Customer_Id}");
 
@@ -175,8 +153,6 @@ namespace MyCaRt.Controllers
             }
 
             return Json(cartData);
-            }
-            return RedirectToAction("GetCartByCustomer", new { Customer_Id = userid });
         }
 //update the quantity of the cartitem based on cartitem id
         [HttpPost]

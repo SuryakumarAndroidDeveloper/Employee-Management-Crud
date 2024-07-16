@@ -4,9 +4,12 @@ using MyCaRt.Models;
 using Newtonsoft.Json;
 using System.Reflection;
 using System.Text;
+using static MyCaRt.Enum.@enum;
 
 namespace MyCaRt.Controllers
 {
+
+    [CustomAuthorize(UserRoles.Admin, UserRoles.User)]
     public class PaymentController : Controller
     {
         public readonly HttpClient _httpClient;

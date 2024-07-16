@@ -1,12 +1,15 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using MyCaRt.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Text;
+using static MyCaRt.Enum.@enum;
 
 namespace MyCaRt.Controllers
 {
+    [CustomAuthorize(UserRoles.Admin,UserRoles.User)]
     public class WishListController : Controller
     {
         public readonly HttpClient _httpClient;
@@ -19,12 +22,22 @@ namespace MyCaRt.Controllers
             _httpClient.BaseAddress = new Uri(_config["ApiSettings:BaseUri"]);
 
         }
+        protected int? UserRole;
+        protected int? UserId;
 
+        public override void OnActionExecuting(ActionExecutingContext context)
+        {
+            UserRole = HttpContext.Session.GetInt32("Role");
+            ViewBag.UserRole = UserRole;
+            UserId = HttpContext.Session.GetInt32("Userid");
+            ViewBag.UserId = UserId;
+            base.OnActionExecuting(context);
+        }
 
         [HttpPost]
         public async Task<IActionResult> AddToWishList(CartItemModel cartItem)
         {
-            if (ModelState.IsValid)
+                if (ModelState.IsValid)
             {
                 try
                 {
@@ -116,6 +129,7 @@ namespace MyCaRt.Controllers
             }
 
             return View("Index");
+
         }
 
     }

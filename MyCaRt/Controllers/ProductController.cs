@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -9,9 +10,13 @@ using NuGet.Packaging.Signing;
 using System.Reflection;
 using System.Text;
 using static MyCaRt.Controllers.ProductCategoryController;
+using static MyCaRt.Enum.@enum;
 
 namespace MyCaRt.Controllers
 {
+
+
+    [CustomAuthorize(UserRoles.Admin)]
     public class ProductController : Controller
     {
         public readonly HttpClient _httpClient;
@@ -24,6 +29,18 @@ namespace MyCaRt.Controllers
             _httpClient = new HttpClient();
             _httpClient.BaseAddress = new Uri(_config["ApiSettings:BaseUri"]);
             _webHostEnvironment = webHostEnvironment;
+        }
+
+        protected int? UserRole;
+        protected int? UserId;
+
+        public override void OnActionExecuting(ActionExecutingContext context)
+        {
+            UserRole = HttpContext.Session.GetInt32("Role");
+            ViewBag.UserRole = UserRole;
+            UserId = HttpContext.Session.GetInt32("Userid");
+            ViewBag.UserId = UserId;
+            base.OnActionExecuting(context);
         }
 
         private async Task<bool> SetCategoryDataAsync()
@@ -44,24 +61,31 @@ namespace MyCaRt.Controllers
         //get the productcategory to display in the downdown menu  to create product
         public async Task<IActionResult> CreateProduct()
         {
+          /*  int? role = UserRole;
 
-            if (!await SetCategoryDataAsync())
-            {
-                return NotFound();
-            }
+            if (role == 9002)
+            {*/
 
-            return View(new List<ProductModel> { new ProductModel() });
+                if (!await SetCategoryDataAsync())
+                {
+                    return NotFound();
+                }
+
+                return View(new List<ProductModel> { new ProductModel() });
+           /* }
+            TempData["AlertMessage"] = "You need admin privileges to access this page.";
+            return RedirectToAction("Login_Register", "Login");*/
         }
 
         public async Task<IActionResult> TestCreateProduct()
         {
-
-            if (!await SetCategoryDataAsync())
+                if (!await SetCategoryDataAsync())
             {
                 return NotFound();
             }
 
             return View(new List<ProductModel> { new ProductModel() });
+
         }
         //store the image and get the storedpath
         [HttpPost]
@@ -133,11 +157,10 @@ namespace MyCaRt.Controllers
 
         }
 
-//list of full product
-public async Task<IActionResult> ListOfFullProduct()
+        //list of full product
+        [CustomAuthorize(UserRoles.Admin, UserRoles.User)]
+        public async Task<IActionResult> ListOfFullProduct()
         {
-
-
 
             List<ProductModel> products = new List<ProductModel>();
 
@@ -199,6 +222,7 @@ public async Task<IActionResult> ListOfFullProduct()
         }
  //filter by products
         [HttpPost]
+        [CustomAuthorize(UserRoles.Admin, UserRoles.User)]
         public async Task<IActionResult> FilterProducts([FromBody] List<string> selectedCategories)
         {
             List<ProductModel> products = new List<ProductModel>();

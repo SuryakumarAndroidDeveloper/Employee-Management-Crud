@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using MyCaRt.Models;
@@ -7,9 +8,12 @@ using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Text;
+using static MyCaRt.Enum.@enum;
 
 namespace MyCaRt.Controllers
 {
+
+    [CustomAuthorize(UserRoles.Admin)]
     public class ProductCategoryController : Controller
     {
         public readonly HttpClient _httpClient;
@@ -32,18 +36,20 @@ namespace MyCaRt.Controllers
             }
 
         }
+        protected int? UserRole;
 
-
-        public IActionResult Index()
+        public override void OnActionExecuting(ActionExecutingContext context)
         {
-            return View();
+            UserRole = HttpContext.Session.GetInt32("Role");
+            ViewBag.UserRole = UserRole;
+            base.OnActionExecuting(context);
         }
 
 
         public IActionResult CreateProductCategory()
         {
-            
-            return View();
+                return View();
+
         }
 
 
