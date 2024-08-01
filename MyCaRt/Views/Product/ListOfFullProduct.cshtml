@@ -119,11 +119,11 @@
                         <div class="product-image">
                             @if (!string.IsNullOrEmpty(item.FilePath))
                             {
-                                <img src="@item.FilePath" alt="@item.ImageName" />
+                                <img src="@Url.Content(item.FilePath)" alt="@item.ImageName" />
                             }
                             else
                             {
-                                <img src="~/Image/default-product-image.jpeg" alt="Default Product Image" />
+                                <img src="/Images/defaultimages.jpg" alt="Default Product Image" />
                             }
                         </div>
                         <div class="card-body">
@@ -360,7 +360,7 @@
                                                       <div class="product-image">
                                                     ${product.filePath ?
                                     `<img src="${product.filePath}" class="img-fluid rounded" alt="${product.imageName}">` :
-                                    `<img src="~/images/default-product-image.jpg" class="img-fluid rounded" alt="Default Product Image">`}
+                                    `<img src="~/Images/defaultimages.jpg" class="img-fluid rounded" alt="Default Product Image">`}
                                                 </div>
                                                 <div class="card-body">
                                                     <h5 class="card-title"><strong>Product_Name:</strong> ${product.product_Name}</h5>

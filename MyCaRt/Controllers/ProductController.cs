@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using DocumentFormat.OpenXml.Spreadsheet;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -7,6 +8,9 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using MyCaRt.Models;
 using Newtonsoft.Json;
 using NuGet.Packaging.Signing;
+using OfficeOpenXml;
+using OfficeOpenXml.Drawing;
+using System.Net.Http;
 using System.Reflection;
 using System.Text;
 using static MyCaRt.Controllers.ProductCategoryController;
@@ -22,13 +26,15 @@ namespace MyCaRt.Controllers
         public readonly HttpClient _httpClient;
         private readonly IConfiguration _config;
         private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly IHttpClientFactory _httpClientFactory;
 
-        public ProductController(IConfiguration config, IWebHostEnvironment webHostEnvironment)
+        public ProductController(IConfiguration config, IWebHostEnvironment webHostEnvironment, IHttpClientFactory httpClientFactory)
         {
             _config = config;
             _httpClient = new HttpClient();
             _httpClient.BaseAddress = new Uri(_config["ApiSettings:BaseUri"]);
             _webHostEnvironment = webHostEnvironment;
+            _httpClientFactory = httpClientFactory;
         }
 
         protected int? UserRole;
@@ -253,6 +259,195 @@ namespace MyCaRt.Controllers
 
             return Json(new { success = true, products });
         }
+
+
+
+
+
+
+
+
+
+
+        public IActionResult UploadExcel()
+        {
+            return View();
+        }
+
+
+
+        [HttpPost]
+        public async Task<IActionResult> UploadExcel(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return View("Error", new { message = "No file uploaded." });
+
+            string jsonData;
+            var uploadDir = Path.Combine(_webHostEnvironment.WebRootPath, "uploads");
+            Directory.CreateDirectory(uploadDir);
+            using (var stream = new MemoryStream())
+            {
+                await file.CopyToAsync(stream);
+                // Set the license context
+                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+                using (var package = new ExcelPackage(stream))
+                {
+                    ExcelWorksheet worksheet = package.Workbook.Worksheets[0];
+                    int rowCount = worksheet.Dimension.Rows;
+                    int imageColumnIndex = 7;
+                    var dataList = new List<ProductModel>();
+                    for (int row = 2; row <= worksheet.Dimension.End.Row; row++)
+                    {
+                        var imageUrls = worksheet.Cells[row, imageColumnIndex].Text.Split(';');// Assuming multiple URLs are separated by semicolons
+                        var filePaths = new List<string>();
+                        var fileNames = new List<string>();
+                        foreach (var imageUrl in imageUrls)
+                        {
+                            if (!string.IsNullOrWhiteSpace(imageUrl))
+                            {
+                                var filePath = await DownloadAndSaveImageAsync(imageUrl.Trim(), uploadDir);
+                                filePaths.Add(filePath);
+
+                            }
+                        }
+
+
+                         dataList.Add(new ProductModel
+                        {
+                            Product_Category = worksheet.Cells[row, 1].Value.ToString(),
+                            Product_Code = worksheet.Cells[row, 2].Value.ToString(),
+                            Product_Name = worksheet.Cells[row, 3].Value.ToString(),
+                            Product_Price = Convert.ToDecimal(worksheet.Cells[row, 4].Value),
+                            Product_Description = worksheet.Cells[row, 5].Value.ToString(),
+                            Available_Quantity = Convert.ToInt32(worksheet.Cells[row, 6].Value),
+                            ImageName = worksheet.Cells[row, 7].Value.ToString(),
+                            FilePath = string.Join(";", filePaths)
+                        });
+                    }
+                jsonData = JsonConvert.SerializeObject(dataList);
+                }
+            }
+
+           // var client = _httpClientFactory.CreateClient();
+            var content = new StringContent(jsonData, Encoding.UTF8, "application/json");
+            var response = await _httpClient.PostAsync($"{_httpClient.BaseAddress}/Product/InsertProductJsonData", content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return Json(new { success = true, message = "Data inserted successfully" });
+            }
+            else
+            {
+                return Json(new { success = false, message = "Error inserting data." });
+            }
+        }
+
+        private async Task<string> DownloadAndSaveImageAsync(string imageUrl, string uploadDir)
+        {
+            if (Uri.IsWellFormedUriString(imageUrl, UriKind.Absolute))
+            {
+                // Handle URL case
+                var fileName = Path.GetFileName(imageUrl);
+                fileName = SanitizeFileName(fileName);
+                var filePath = Path.Combine(uploadDir, fileName);
+
+                // Ensure unique filename
+                if (System.IO.File.Exists(filePath))
+                {
+                    var timestamp = DateTime.Now.ToString("-yyyy-MM-ddHHmmss");
+                    fileName = $"{Path.GetFileNameWithoutExtension(fileName)}_{timestamp}_{DateTime.Now.Ticks}{Path.GetExtension(fileName)}";
+                    // fileName = $"{Path.GetFileNameWithoutExtension(fileName)}_{DateTime.Now.Ticks}{Path.GetExtension(fileName)}";
+                    filePath = Path.Combine(uploadDir, fileName);
+                }
+
+                using (var client = _httpClientFactory.CreateClient())
+                {
+                    var response = await client.GetAsync(imageUrl);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        try
+                        {
+                            using (var fileStream = new FileStream(filePath, FileMode.Create))
+                            {
+                                await response.Content.CopyToAsync(fileStream);
+                            }
+                            return Path.Combine("/uploads", fileName).Replace("\\", "/");
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Error saving image from URL: {ex.Message}");
+                            return null;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                // Handle local file path case
+                try
+                {
+                    var filePath = Path.GetFullPath(imageUrl);
+                    Console.WriteLine($"Checking local file path: {filePath}");
+
+                    // Validate the source file path
+                    if (!System.IO.File.Exists(filePath))
+                    {
+                        Console.WriteLine($"Local file not found: {filePath}");
+                        return null;
+                    }
+
+                    var fileName = Path.GetFileName(filePath);
+                    fileName = SanitizeFileName(fileName);
+                    var destinationFilePath = Path.Combine(uploadDir, fileName);
+
+                    // Ensure unique filename
+                    if (System.IO.File.Exists(destinationFilePath))
+                    {
+                        var timestamp = DateTime.Now.ToString("-yyyy-MM-ddHHmmss");
+                        fileName = $"{Path.GetFileNameWithoutExtension(fileName)}_{timestamp}_{DateTime.Now.Ticks}{Path.GetExtension(fileName)}";
+                      
+                        destinationFilePath = Path.Combine(uploadDir, fileName);
+                    }
+
+                    // Copy the local file to the upload directory
+                    System.IO.File.Copy(filePath, destinationFilePath);
+                    return Path.Combine("/uploads", fileName).Replace("\\", "/");
+                }
+                catch (UnauthorizedAccessException ex)
+                {
+                    Console.WriteLine($"Unauthorized access: {ex.Message}");
+                    return null;
+                }
+                catch (IOException ex)
+                {
+                    Console.WriteLine($"IO error: {ex.Message}");
+                    return null;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error copying local image file: {ex.Message}");
+                    return null;
+                }
+            }
+            return null;
+        }
+
+
+
+        private string SanitizeFileName(string fileName)
+        {
+            // Remove invalid characters from file name
+            var invalidChars = Path.GetInvalidFileNameChars();
+            var sanitizedFileName = new string(fileName
+                .Select(c => invalidChars.Contains(c) ? '_' : c)
+                .ToArray());
+
+            // You might want to truncate the filename if it's too long
+            return sanitizedFileName.Length > 255 ? sanitizedFileName.Substring(0, 255) : sanitizedFileName;
+        }
+
+
+
 
 
     }

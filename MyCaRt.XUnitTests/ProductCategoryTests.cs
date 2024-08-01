@@ -3,8 +3,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Moq;
-using MyCaRt.Controllers;
-using MyCaRt.Models;
 using Newtonsoft.Json;
 using System.Net;
 using System.Text;

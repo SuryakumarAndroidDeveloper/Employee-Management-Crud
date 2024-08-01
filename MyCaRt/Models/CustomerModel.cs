@@ -35,6 +35,10 @@ namespace MyCaRt.Models
         public string? Customer_InterestedCategory { get; set; }
 
 
+        public string? FilePath { get; set; }
+        public string? ImageName { get; set; }
+
+
     }
 
 

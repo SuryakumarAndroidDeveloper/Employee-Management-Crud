@@ -3,6 +3,12 @@
 @{
     ViewData["Title"] = "MyOrders";
 }
+@if (TempData["AlertCancelMessage"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["AlertCancelMessage"]
+    </div>
+}
 
 <h1>My Orders</h1>
 
@@ -42,6 +48,9 @@ else
                             <th>@Html.DisplayNameFor(model => model.Product_Name)</th>
                             <th>@Html.DisplayNameFor(model => model.Quantity)</th>
                             <th>@Html.DisplayNameFor(model => model.OrderDate)</th>
+                            <th>@Html.DisplayNameFor(model => model.DeliveryDate)</th>
+                            <th>@Html.DisplayNameFor(model => model.DeliveryStatus)</th>
+
                         </tr>
                     </thead>
                     <tbody>
@@ -51,10 +60,41 @@ else
                                 <td>@Html.DisplayFor(modelItem => item.Product_Name)</td>
                                 <td>@Html.DisplayFor(modelItem => item.Quantity)</td>
                                 <td>@Html.DisplayFor(modelItem => item.OrderDate)</td>
+                                <td>@Html.DisplayFor(modelItem => item.DeliveryDate)</td>
+                                <td>@Html.DisplayFor(modelItem => item.DeliveryStatus)</td>
                             </tr>
                         }
                     </tbody>
+                    <div>
+                        @foreach (var item in orderGroup)
+                        {
+                            if ((item.DeliveryStatus == "Canceled" && item.DeliveryDate == null) || item.DeliveryStatus == "Delivered")
+                            {
+                              
+                                    <button type="submit" class="btn btn-primary">Buy Again</button>
+                                
+                            }
+                            else
+                            {
+                                <form class="action-links-form" asp-controller="Order" asp-action="CancelOrder" method="post" style="display: inline-block; ">
+                                    <input type="hidden" name="orderId" value="@firstOrderItem.OrderId" />
+                                    <button type="submit" class="action-links delete" onclick="return confirm('Are you sure you want to Cancel this Order?')"
+                                    stye="background-color:red;color:black">
+                                        Cancel Order
+                                    </button>
+
+                                    <button type="submit" class="btn btn-primary" style="display:inline;">Buy Again</button>
+                                </form>
+                            }
+                        }
+
+                        
+                       
+                        
+                        
+                    </div>
                 </table>
+              
             </div>
         </div>
     }
@@ -78,5 +118,188 @@ else
         margin-top: 15px;
     }
 </style>
-        
+<div class="modal fade" id="payModal" tabindex="-1" aria-labelledby="payModalLabel" aria-hidden="true">
+    <div class="containermodel modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="payModalLabel">Payment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Payment form or information goes here -->
+                <p>Payment details...</p>
+                <div class="container">
 
+                    <form id="paymentForm">
+
+                        <div class="row">
+
+                            <div class="col">
+                                <h3 class="title">
+                                    Billing Address
+                                </h3>
+
+                                <div class="inputBox">
+                                    <label for="FullName">
+                                        Full Name:
+                                    </label>
+                                    <input type="text" id="FullName" name="FullName"
+                                           placeholder="Enter your full name"
+                                           required>
+                                </div>
+
+                                <div class="inputBox">
+                                    <label for="Email">
+                                        Email:
+                                    </label>
+                                    <input type="text" id="Email" name="Email"
+                                           placeholder="Enter email address"
+                                           required>
+                                </div>
+
+                                <div class="inputBox">
+                                    <label for="Address">
+                                        Address:
+                                    </label>
+                                    <input type="text" id="Address" name="Address"
+                                           placeholder="Enter address"
+                                           required>
+                                </div>
+
+                                <div class="inputBox">
+                                    <label for="City">
+                                        City:
+                                    </label>
+                                    <input type="text" id="City" name="City"
+                                           placeholder="Enter city"
+                                           required>
+                                </div>
+
+                                <div class="flex">
+
+                                    <div class="inputBox">
+                                        <label for="State">
+                                            State:
+                                        </label>
+                                        <input type="text" id="State" name="State"
+                                               placeholder="Enter state"
+                                               required>
+                                    </div>
+
+                                    <div class="inputBox">
+                                        <label for="ZipCode">
+                                            Zip Code:
+                                        </label>
+                                        <input type="number" id="ZipCode" name="ZipCode"
+                                               placeholder="123 456"
+                                               required>
+                                    </div>
+
+                                </div>
+
+                            </div>
+                            <div class="col">
+                                <h3 class="title">Payment</h3>
+
+                                <div class="inputBox">
+                                    <label for="name">
+                                        Card Accepted:
+                                    </label>
+                                    <img style="width:400px;height:50px" src="~/Image/card.png"
+                                         alt="credit/debit card image">
+                                </div>
+
+                                <div class="inputBox">
+                                    <label for="CardName">
+                                        Name On Card:
+                                    </label>
+                                    <input type="text" id="CardName" name="CardName"
+                                           placeholder="Enter card name"
+                                           required>
+                                </div>
+
+                                <div class="inputBox">
+                                    <label for="CardNumber">
+                                        Credit Card Number:
+                                    </label>
+                                    <input type="text" id="CardNumber" name="CardNumber"
+                                           placeholder="xxxx-xxxx-xxxx-1234"
+                                           maxlength="16" required>
+                                </div>
+
+                                <div class="inputBox">
+                                    <label for="ExpMonth">Exp Month:</label>
+                                    <select name="ExpMonth" id="ExpMonth">
+                                        <option value="">Choose month</option>
+                                        <option value="January">January</option>
+                                        <option value="February">February</option>
+                                        <option value="March">March</option>
+                                        <option value="April">April</option>
+                                        <option value="May">May</option>
+                                        <option value="June">June</option>
+                                        <option value="July">July</option>
+                                        <option value="August">August</option>
+                                        <option value="September">September</option>
+                                        <option value="October">October</option>
+                                        <option value="November">November</option>
+                                        <option value="December">December</option>
+                                    </select>
+                                </div>
+
+
+                                <div class="flex">
+                                    <div class="inputBox">
+                                        <label for="ExpYear">Exp Year:</label>
+                                        <select name="ExpYear" id="ExpYear">
+                                            <option value="">Choose Year</option>
+                                            <option value="2023">2023</option>
+                                            <option value="2024">2024</option>
+                                            <option value="2025">2025</option>
+                                            <option value="2026">2026</option>
+                                            <option value="2027">2027</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="inputBox">
+                                        <label for="CVV">CVV</label>
+                                        <input type="number" id="CVV" name="CVV"
+                                               placeholder="1234" required>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <input id="confirm-pay-btn" type="submit" value="Proceed to Checkout"
+                               class="submit_btn">
+                    </form>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+    <script>
+       $(document).ready(function () {
+
+
+
+
+
+
+
+
+
+
+
+
+        });
+        </script>
+    }

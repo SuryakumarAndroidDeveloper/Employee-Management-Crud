@@ -277,3 +277,66 @@ public async Task<IActionResult> ListOfFullProduct()
 
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+            using (var stream = new MemoryStream())
+            {
+                await file.CopyToAsync(stream);
+                // Set the license context
+                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+                using (var package = new ExcelPackage(stream))
+                {
+                    ExcelWorksheet worksheet = package.Workbook.Worksheets[0];
+                    int rowCount = worksheet.Dimension.Rows;
+
+                    var data = new StringBuilder();
+
+                    data.Append("[");
+
+                    for (int row = 2; row <= rowCount; row++)
+                    {
+                        var product = new
+                        {
+                            Product_Category = worksheet.Cells[row, 1].Value.ToString(),
+                            Product_Code = worksheet.Cells[row, 2].Value.ToString(),
+                            Product_Name = worksheet.Cells[row, 3].Value.ToString(),
+                            Product_Price = Convert.ToDecimal(worksheet.Cells[row, 4].Value),
+                            Product_Description = worksheet.Cells[row, 5].Value.ToString(),
+                            Available_Quantity = Convert.ToInt32(worksheet.Cells[row, 6].Value),
+                            ImageName = worksheet.Cells[row, 7].Value.ToString()
+                        };
+
+                        // Extract image from the 7th cell
+                        var picture = worksheet.Drawings.OfType<ExcelPicture>().FirstOrDefault(p => p.From.Row == row - 1);
+                        if (picture != null)
+                        {
+                            var imagePath = await SaveEmbeddedImage(picture, product.ImageName);
+                           // product.FilePath = imagePath;
+                        }
+                        else
+                        {
+                           // product.FilePath = null; // or a default path if preferred
+                        }
+
+                        var jsonProduct = JsonConvert.SerializeObject(product);
+                        data.Append(jsonProduct);
+
+                        if (row < rowCount)
+                        {
+                            data.Append(",");
+                        }
+                    }
+
+                    data.Append("]");
+                    jsonData = data.ToString();
+                }
+            }

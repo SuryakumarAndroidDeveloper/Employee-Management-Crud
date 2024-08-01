@@ -4,15 +4,30 @@
     ViewData["Title"] = "Edit Customer";
     var categoryData = ViewBag.CategoryData as List<ProductCategoryModel>;
 }
-
+<style>
+    .img-circle {
+        border-radius: 50%;
+        object-fit: cover; 
+    }
+</style>
 <h1>Edit Customer</h1>
 
 <hr />
 <div class="row">
     <div class="col-md-4">
-        <form asp-action="Edit">
+        <form asp-action="Edit" enctype="multipart/form-data" id="customerForm">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
+            <!-- Image upload section -->
+            <div class="form-group">
+                <label asp-for="ImageName" class="control-label">Select Image</label><br />
+                <img id="imagePreview" src="@(!string.IsNullOrEmpty(Model.FilePath) ? Model.FilePath : "#")" alt="Image Preview" class="img-circle" style="@(string.IsNullOrEmpty(Model.FilePath) ? "display:none;" : "display:inline;") width:150px; height:150px;" style="display:none; width:150px; height:150px;" />
+                <div class="file-input-container">
+                    <input type="file" class="form-control-file" name="ImageFile" onchange="uploadImage(this)" />
+                    <span class="text-danger" id="filepathError"></span>
+                    <input type="hidden" asp-for="ImageName" />
+                    <input type="hidden" asp-for="FilePath" />
+                </div>
+            </div>
             <div class="form-group">
                 <label asp-for="Customer_FName" class="control-label"></label>
                 <input asp-for="Customer_FName" class="form-control" />
@@ -70,4 +85,47 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    <script>
+
+        function uploadImage(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+
+                reader.onload = function (e) {
+                    var previewElement = document.getElementById('imagePreview');
+                    previewElement.src = e.target.result;
+                    previewElement.style.display = 'inline';
+                };
+
+                reader.readAsDataURL(input.files[0]);
+
+                var formData = new FormData();
+                formData.append("ImageName", input.files[0]);
+
+                $.ajax({
+                    url: '/Customer/UploadUserImage',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (response) {
+                        if (response.filePath) {
+                            console.log(response);
+                            $('input[name="ImageName"]').val(response.fileName);
+                            $('input[name="FilePath"]').val(response.filePath);
+                        } else {
+                            alert('Failed to upload image.');
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Error: ', error);
+                        alert('Error uploading image: ' + error);
+                    }
+                });
+            }
+        }
+
+
+
+    </script>
 }

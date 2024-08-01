@@ -1,6 +1,7 @@
-﻿@model MyCaRt.Models.LoginModel
+﻿@model MyCaRt.Models.RegisterUserModel
 @{
     ViewBag.Title = "Login/Register";
+    bool showSignup = ViewBag.ShowSignup ?? false;
 }
 
 @if (TempData["SuccessMessage"] != null)
@@ -15,9 +16,33 @@
         @TempData["AlertMessage"]
     </div>
 }
+@if (TempData["InvalidMessage"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["InvalidMessage"]
+    </div>
+}
+@if (TempData["ResetMessage"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["ResetMessage"]
+    </div>
+}
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["Message"]
+    </div>
+}
 @if(ViewBag.Message!=null){ 
     <div class="alert alert-danger">
         @ViewBag.Message
+    </div>
+}
+@if (ViewBag.MessageSuccess != null)
+{
+    <div class="alert alert-success">
+        @ViewBag.MessageSuccess
     </div>
 }
 
@@ -208,9 +233,85 @@ form .btn input[type="submit"]{
   font-weight: 500;
   cursor: pointer;
 }
+    <!-- CSS for Popup Window -->
+    .popup {
+        display: none;
+        position: fixed;
+        z-index: 999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.4); 
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .popup-content {
+        background-color: #fefefe;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+        max-width: 500px;
+        text-align: center;
+        position: relative;
+        z-index: 1001; 
+    }
+
+    .close {
+        color: #aaa;
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+        z-index: 1002; 
+    }
+
+        .close:hover,
+        .close:focus {
+            color:red;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+    .field {
+        margin-bottom: 10px;
+    }
+
+    #forgotPasswordResult {
+        margin-top: 10px;
+        color: #f00;
+    }
+
+    .blurred {
+        filter: blur(5px);
+        pointer-events: none; 
+    }
+
 </style>
 
-<div class="wrapper">
+<!-- Popup Window HTML -->
+<div id="forgotPasswordPopup" class="popup" style="display:none">
+    <div class="popup-content">
+        <span class="close">&times;</span>
+        <h2>Forgot Password?</h2>
+        <form asp-action="ForgetPassword" method="post">
+            <div class="field">
+                <label for="email">Enter your email:</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div class="field">
+                <input type="submit" value="Submit">
+            </div>
+        </form>
+        <div id="forgotPasswordResult">@ViewBag.Message</div>
+    </div>
+</div>
+
+<div class="wrapper" id="form">
     <div class="title-text">
         <div class="title login">Login Form</div>
         <div class="title signup">Signup Form</div>
@@ -226,15 +327,14 @@ form .btn input[type="submit"]{
         <div class="form-inner">
             <form asp-action="Login" method="post" class="login">
                 <div class="field">
-                    <input type="email" name="Email" placeholder="UserEmail" required>
+                    <input type="email" asp-for="Email" name="Email" placeholder="UserEmail" required>
                     <span asp-validation-for="Email" class="text-danger"></span>
                 </div>
                 <div class="field">
-                    <input type="password" name="Password" placeholder="Password" required>
+                    <input type="password" asp-for="Password" name="Password" placeholder="Password" required>
                     <span asp-validation-for="Password" class="text-danger"></span>
-
                 </div>
-                <div class="pass-link"><a href="#">Forgot password?</a></div>
+                <div class="pass-link"><a href="#" id="forgotPasswordLink">Forgot password?</a></div>
                 <div class="field btn">
                     <div class="btn-layer"></div>
                     <input type="submit" value="Login">
@@ -242,24 +342,23 @@ form .btn input[type="submit"]{
                 <div class="signup-link">Not a member? <a href="">Signup now</a></div>
             </form>
             <form asp-action="Register" method="post" class="signup">
+                <input type="hidden" id="showSignup" value="@showSignup" />
                 <div class="field">
-                    <input type="text" name="UserName" placeholder="UserName" required>
+                    <input asp-for="UserName" type="text" placeholder="User Name" required>
                     <span asp-validation-for="UserName" class="text-danger"></span>
-
                 </div>
                 <div class="field">
-                    <input type="email" name="Email" placeholder="Email" required>
+                    <input asp-for="Email" type="text" placeholder="Email Address" required>
                     <span asp-validation-for="Email" class="text-danger"></span>
                 </div>
                 <div class="field">
-                    <input type="password" name="Password" placeholder="Password" required>
+                    <input asp-for="Password" type="password" id="passwordcopy" placeholder="Password" required>
                     <span asp-validation-for="Password" class="text-danger"></span>
-
                 </div>
+                <br />
                 <div class="field">
-                    <input type="password" name="CPassword" placeholder="ConfirmPassword" required>
+                    <input asp-for="CPassword" type="password" placeholder="Confirm password" required>
                     <span asp-validation-for="CPassword" class="text-danger"></span>
-
                 </div>
                 <div class="field btn">
                     <div class="btn-layer"></div>
@@ -271,12 +370,17 @@ form .btn input[type="submit"]{
 </div>
 
 
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 <script>
      const loginText = document.querySelector(".title-text .login");
       const loginForm = document.querySelector("form.login");
       const loginBtn = document.querySelector("label.login");
       const signupBtn = document.querySelector("label.signup");
       const signupLink = document.querySelector("form .signup-link a");
+      const showSignup = document.getElementById("showSignup").value;
       signupBtn.onclick = (()=>{
         loginForm.style.marginLeft = "-50%";
         loginText.style.marginLeft = "-50%";
@@ -289,5 +393,43 @@ form .btn input[type="submit"]{
         signupBtn.click();
         return false;
       });
+    if (showSignup) {
+        signupBtn.click();
+        clearLoginErrors();
+    }
+    function clearLoginErrors() {
+        document.querySelector("form.login .text-danger").innerHTML = ''; 
+     
+    }
+    // Get the popup and close button elements
+    const popup = document.getElementById('forgotPasswordPopup');
+    const form = document.getElementById('form');
+    const closeBtn = popup.querySelector('.close');
+
+    // Get the link to open the popup and the form elements
+    const forgotPasswordLink = document.getElementById('forgotPasswordLink');
+    const forgotPasswordResult = document.getElementById('forgotPasswordResult');
+
+    // Show the popup when the link is clicked
+    forgotPasswordLink.onclick = (() => {
+        event.preventDefault();
+        popup.style.display = 'block';
+            form.classList.add('blurred');
+       //form.style.display = 'none';
+
+    });
+    // Close the popup when the close button is clicked
+    closeBtn.addEventListener('click', function () {
+        popup.style.display = 'none';
+            form.classList.remove('blurred');
+            //form.style.display = 'block';
+    });
+
+    $('#passwordcopy').on('cut copy paste', function (e) {
+        e.preventDefault();
+    });
+   
 
 </script>
+
+    }

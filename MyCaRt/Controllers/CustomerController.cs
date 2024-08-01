@@ -1,12 +1,20 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿
+using iText.Kernel.Geom;
+using iText.Kernel.Pdf;
+using iText.Layout;
+using iText.Layout.Element;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using MyCaRt.Models;
 using Newtonsoft.Json;
+using OfficeOpenXml;
 using System.Data;
 using System.Net;
 using System.Text;
 using static MyCaRt.Controllers.ProductController;
 using static MyCaRt.Enum.@enum;
+using Path = System.IO.Path;
 
 namespace MyCaRt.Controllers
 {
@@ -15,13 +23,14 @@ namespace MyCaRt.Controllers
     {
         public readonly HttpClient _httpClient;
         private readonly IConfiguration _config;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public CustomerController(IConfiguration config)
+        public CustomerController(IConfiguration config, IWebHostEnvironment webHostEnvironment)
         {
             _config = config;
             _httpClient = new HttpClient();
             _httpClient.BaseAddress = new Uri(_config["ApiSettings:BaseUri"]);
-           
+            _webHostEnvironment = webHostEnvironment;
         }
         protected int? UserRole;
         protected int? UserId;
@@ -134,10 +143,150 @@ namespace MyCaRt.Controllers
             return View(customers);
 
             }
+        //export the data to excel
+        [HttpPost]
+        public async Task<IActionResult> ExportToExcel()
+        {
+            List<CustomerInterestedCategory> customers = new List<CustomerInterestedCategory>();
 
+            HttpResponseMessage response = await _httpClient.GetAsync(_httpClient.BaseAddress + "/Customer/GetAllCustomer");
+            if (response.IsSuccessStatusCode)
+            {
+                string data = await response.Content.ReadAsStringAsync();
+                customers = JsonConvert.DeserializeObject<List<CustomerInterestedCategory>>(data);
 
+                // Generate Excel file
+                var excelFile = GenerateExcelFile(customers);
+                return File(excelFile, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Customers.xlsx");
+            }
+            else
+            {
+                ModelState.AddModelError(string.Empty, "Failed to retrieve customer data for export.");
+                // Handle the error accordingly
+                return RedirectToAction("ListOfCustomers");
+            }
+        }
 
-        //edit the customerdetails the customerdetails fetch to the field based on customerid
+        private static byte[] GenerateExcelFile(List<CustomerInterestedCategory> customers)
+        {
+            try
+            {
+                // Set the license context
+                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+                using (var package = new ExcelPackage())
+                {
+                    var worksheet = package.Workbook.Worksheets.Add("Customers");
+
+                    // Add headers
+                    worksheet.Cells[1, 1].Value = "Customer Id";
+                    worksheet.Cells[1, 2].Value = "First Name";
+                    worksheet.Cells[1, 3].Value = "Last Name";
+                    worksheet.Cells[1, 4].Value = "Gender";
+                    worksheet.Cells[1, 5].Value = "Interested Category";
+                    worksheet.Cells[1, 6].Value = "Email";
+                    worksheet.Cells[1, 7].Value = "Mobile";
+
+                    // Add values
+                    for (int i = 0; i < customers.Count; i++)
+                    {
+                        worksheet.Cells[i + 2, 1].Value = customers[i].Customer_Id;
+                        worksheet.Cells[i + 2, 2].Value = customers[i].Customer_FName;
+                        worksheet.Cells[i + 2, 3].Value = customers[i].Customer_LName;
+                        worksheet.Cells[i + 2, 4].Value = customers[i].Customer_Gender;
+                        worksheet.Cells[i + 2, 5].Value = customers[i].Customer_InterestedCategory;
+                        worksheet.Cells[i + 2, 6].Value = customers[i].Customer_Email;
+                        worksheet.Cells[i + 2, 7].Value = customers[i].Customer_Mobile;
+                    }
+
+                    return package.GetAsByteArray();
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error generating the Excel file", ex);
+            }
+        }
+        //convert the data to the pdf format 
+        [HttpPost]
+        public async Task<IActionResult> ExportToPdf()
+        {
+            List<CustomerInterestedCategory> customers = new List<CustomerInterestedCategory>();
+
+            HttpResponseMessage response = await _httpClient.GetAsync(_httpClient.BaseAddress + "/Customer/GetAllCustomer");
+            if (response.IsSuccessStatusCode)
+            {
+                string data = await response.Content.ReadAsStringAsync();
+                customers = JsonConvert.DeserializeObject<List<CustomerInterestedCategory>>(data);
+
+                // Generate PDF file
+                var pdfFile = GeneratePdfFile(customers);
+                return File(pdfFile, "application/pdf", "Customers.pdf");
+            }
+            else
+            {
+                ModelState.AddModelError(string.Empty, "Failed to retrieve customer data for export.");
+                // Handle the error accordingly
+                return RedirectToAction("ListOfCustomers");
+            }
+        }
+
+        private static byte[] GeneratePdfFile(List<CustomerInterestedCategory> customers)
+        {
+            using (var memoryStream = new MemoryStream())
+            {
+                try
+                {
+                    // Create a new PDF document
+                    using (var writer = new PdfWriter(memoryStream))
+                    {
+                        using (var pdf = new PdfDocument(writer))
+                        {
+                            var document = new Document(pdf, PageSize.A3);
+
+                            // Add a title
+                            document.Add(new Paragraph("Customer List")
+                                .SetBold()
+                                .SetFontSize(20));
+
+                            // Add a table with headers
+                            var table = new Table(new float[] { 1, 4, 4, 2, 3, 4, 4 });
+                            table.AddHeaderCell("Id");
+                            table.AddHeaderCell("First Name");
+                            table.AddHeaderCell("Last Name");      
+                            table.AddHeaderCell("Gender");
+                            table.AddHeaderCell("Interested Category");
+                            table.AddHeaderCell("Email");
+                            table.AddHeaderCell("Mobile");
+
+                            // Add rows
+                            foreach (var customer in customers)
+                            {
+                                table.AddCell(customer.Customer_Id.ToString());
+                                table.AddCell(customer.Customer_FName);
+                                table.AddCell(customer.Customer_LName);
+                                table.AddCell(customer.Customer_Gender);
+                                table.AddCell(customer.Customer_InterestedCategory);
+                                table.AddCell(customer.Customer_Email);
+                                table.AddCell(customer.Customer_Mobile);
+                            }
+
+                            document.Add(table);
+                        }
+                    }
+
+                    return memoryStream.ToArray();
+                }
+                catch (Exception ex)
+                {
+                    // Log the exception or handle it
+                    Console.WriteLine($"An error occurred: {ex.Message}");
+                    throw;
+                }
+            }
+        }
+
+            //edit the customerdetails the customerdetails fetch to the field based on customerid
         [CustomAuthorize(UserRoles.Admin, UserRoles.User)]
         public IActionResult Edit()
         {
@@ -219,6 +368,44 @@ namespace MyCaRt.Controllers
             TempData["AlertMessage"] = "You need login to access this page.";
             return RedirectToAction("Login_Register", "Login");
         }
+
+        //add the userprofile photo in localpath
+        [HttpPost]
+        [CustomAuthorize(UserRoles.Admin, UserRoles.User)]
+        public async Task<IActionResult> UploadUserImage(IFormFile ImageName)
+        {
+            int? role = UserRole;
+            int? userid = UserId;
+
+            if (role == (int)UserRoles.Admin || (role == (int)UserRoles.User))
+            {
+
+                if (ImageName != null && ImageName.Length > 0)
+            {
+                var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "UserProfileImage");
+                if (!Directory.Exists(uploadsFolder))
+                {
+                    Directory.CreateDirectory(uploadsFolder);
+                }
+
+                var timestamp = DateTime.Now.ToString("-yyyy-MM-ddHHmmss");
+                var fileName = Path.GetFileNameWithoutExtension(ImageName.FileName) + timestamp + Path.GetExtension(ImageName.FileName);
+                var filePath = Path.Combine(uploadsFolder, fileName);
+
+                using var fileStream = new FileStream(filePath, FileMode.Create);
+                await ImageName.CopyToAsync(fileStream);
+
+                return Ok(new { filePath = "/UserProfileImage/" + fileName, fileName });
+            }
+        
+
+            return BadRequest("Invalid image file.");
+            }
+            TempData["AlertMessage"] = "You need login to access this page.";
+            return RedirectToAction("Login_Register", "Login");
+        }
+
+
         //update the customer details based on customerid
 
         [HttpPost]

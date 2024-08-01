@@ -93,7 +93,7 @@
     <div class="form-group">
         <input id="Customer_Id" name="Customer_Id" type="hidden" value="@ViewBag.UserId" />
     </div>
-
+    <p>Surya Kumar</p>
     <div id="product-container" class="container">
         <div class="row">
             @foreach (var item in Model)
@@ -103,11 +103,11 @@
                         <div class="product-image">
                             @if (!string.IsNullOrEmpty(item.FilePath))
                             {
-                                <img src="@item.FilePath" alt="@item.ImageName" />
+                                <img src="@item.FilePath" alt="@Url.Content("/Images/defaultimages.jpg")" />
                             }
                             else
                             {
-                                <img src="~/Image/default-product-image.jpeg" alt="Default Product Image" />
+                                <img src="~/Images/defaultimages.jpg" alt="Default Product Image" />
                             }
                         </div>
                         <div class="card-body">
@@ -312,7 +312,7 @@
                                                               <div class="product-image">
                                                             ${product.filePath ?
                                     `<img src="${product.filePath}" class="img-fluid rounded" alt="${product.imageName}">` :
-                                    `<img src="~/images/default-product-image.jpg" class="img-fluid rounded" alt="Default Product Image">`}
+                                    `<img src="~/Images/defaultimages.jpg" class="img-fluid rounded" alt="Default Product Image">`}
                                                         </div>
                                                         <div class="card-body">
                                                             <h5 class="card-title"><strong>Product_Name:</strong> ${product.product_Name}</h5>

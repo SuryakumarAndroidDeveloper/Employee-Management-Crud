@@ -30,6 +30,25 @@
         .action-links.wishlist {
             background-color: #28a745;
         }
+        .export{
+        position: absolute;
+        right: 280px;
+        margin: 10px;
+        }
+
+        .export:hover{
+            background-color:green;
+        }
+
+          .exportpdf {
+          position: absolute;
+          right: 180px;
+        margin: 10px;
+    }
+
+        .exportpdf:hover {
+            background-color:darkred;
+        }
 </style>
 
 <div class="containerindex">
@@ -38,6 +57,12 @@
 <p>
     <a asp-controller="Customer" asp-action="Customer">Create New</a>
 </p>
+    <form asp-action="ExportToPdf" method="post">
+        <button type="submit" class="exportpdf">Export Pdf</button>
+    </form>
+    <form asp-action="ExportToExcel" method="post">
+        <button type="submit" class="export">Export Excel</button>
+    </form><br /><br />
 <table class="table">
     <thead>
         <tr>

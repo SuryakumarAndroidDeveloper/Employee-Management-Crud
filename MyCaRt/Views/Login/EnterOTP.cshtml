@@ -1,0 +1,68 @@
+﻿@{
+    ViewBag.Title = "Enter OTP";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enter OTP</title>
+    <style>
+        .wrapper {
+            max-width: 390px;
+            background: #fff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0px 15px 20px rgba(0,0,0,0.1);
+            margin: 0 auto;
+            margin-top: 100px;
+        }
+
+        .field {
+            margin-bottom: 20px;
+        }
+
+            .field input {
+                height: 50px;
+                width: 100%;
+                padding: 0 15px;
+                border-radius: 15px;
+                border: 1px solid lightgrey;
+                font-size: 17px;
+                transition: all 0.3s ease;
+            }
+
+        .btn {
+            height: 50px;
+            width: 100%;
+            border-radius: 15px;
+            background: -webkit-linear-gradient(left, #003366, #004080, #0059b3, #0073e6);
+            border: none;
+            color: #fff;
+            font-size: 20px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <h2>Enter OTP</h2>
+        <form asp-action="VerifyOTP" method="post">
+            <div class="field">
+                <input type="text" id="otp" name="Otp" placeholder="Enter OTP" required>
+            </div>
+            <div class="field">
+                <input type="submit" class="btn" value="Submit">
+            </div>
+        </form>
+        @if (ViewBag.Message != null)
+        {
+            <div class="alert alert-danger">
+                @ViewBag.Message
+            </div>
+        }
+    </div>
+</body>
+</html>

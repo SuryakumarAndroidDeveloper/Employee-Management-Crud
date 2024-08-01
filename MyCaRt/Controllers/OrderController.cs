@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using DocumentFormat.OpenXml.Spreadsheet;
+using Microsoft.AspNetCore.Mvc;
 using MyCaRt.Models;
 using Newtonsoft.Json;
 using System.Text;
@@ -57,6 +58,160 @@ namespace MyCaRt.Controllers
                 return BadRequest("Failed to place the order.");
             }
         }
+        //buy again the product
+        [HttpPost]
+        public async Task<IActionResult> BuyAgain(int Customer_Id, int PaymentId, int Product_Id, int Quantity, decimal TotalPrice)
+        {
+            var orderProduct = new OrderProduct
+            {
+                Product_Id = Product_Id,
+                Quantity = Quantity,
+                TotalPrice = TotalPrice
+            };
+
+            var orderRequest = new OrderProductModel
+            {
+                Customer_Id = Customer_Id,
+                PaymentId = PaymentId,
+                OrderProducts = new List<OrderProduct> { orderProduct }
+            };
+
+            try
+            {
+                if (orderRequest == null)
+                {
+                    return BadRequest("Invalid order data.");
+                }
+
+                var json = JsonConvert.SerializeObject(orderRequest);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                HttpResponseMessage response = await _httpClient.PostAsync($"{_httpClient.BaseAddress}/Order/PlaceOrder", content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return RedirectToAction("MyOrders"); // Redirect to the orders page or another appropriate page
+                }
+                else
+                {
+                    TempData["AlertMessage"] = "Failed to place the order.";
+                    return RedirectToAction("MyOrders");
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["AlertMessage"] = "Failed to place the order.";
+                return RedirectToAction("MyOrders");
+            }
+        }
+
+        //Cancel the Order based on the Orderid
+
+        [HttpPost]
+        [CustomAuthorize(UserRoles.Admin, UserRoles.User)]
+        public async Task<IActionResult> CancelOrder(int orderId)
+
+        {
+                HttpResponseMessage response = await _httpClient.PostAsync($"{_httpClient.BaseAddress}/Order/CancelOrderById?orderId={orderId}", null);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    TempData["AlertCancelMessage"] = "Order Canceled!";
+                    return RedirectToAction("MyOrders", "Customer");
+
+
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "Server error. Please contact support.");
+                    return RedirectToAction("ListOfCustomers");
+                }
+            }
+
+        //display the fullorderdetails
+
+        [CustomAuthorize(UserRoles.Admin, UserRoles.User)]
+        public async Task<IActionResult> ListOfOrderDetails()
+        {
+            List<ListOfOrdersModel> orders = new List<ListOfOrdersModel>();
+
+            HttpResponseMessage response = await _httpClient.GetAsync(_httpClient.BaseAddress + "/Order/GetAllOrders");
+            if (response.IsSuccessStatusCode)
+            {
+                string data = await response.Content.ReadAsStringAsync();
+                orders = JsonConvert.DeserializeObject<List<ListOfOrdersModel>>(data);
+            }
+            else
+            {
+                ModelState.AddModelError(string.Empty, "Server error. Please contact the administrator.");
+            }
+
+            return View(orders);
+
+        }
+
+        //edit the orderdetails cshtml page
+        [CustomAuthorize(UserRoles.Admin, UserRoles.User)]
+        public IActionResult EditOrder()
+        {
+            return View();
+        }
+
+        //get the orderdetails based on the orderid
+        [HttpGet]
+        [CustomAuthorize(UserRoles.Admin)]
+        public async Task<IActionResult> EditOrder(int orderId)
+        {
+            ListOfOrdersModel order = null;
+
+                HttpResponseMessage response = await _httpClient.GetAsync($"{_httpClient.BaseAddress}/Order/GetOrderById?orderId={orderId}");
+            if (response.IsSuccessStatusCode)
+            {
+                string data = await response.Content.ReadAsStringAsync();
+                System.Diagnostics.Debug.WriteLine(data);
+                order = JsonConvert.DeserializeObject<ListOfOrdersModel>(data);
+
+                return View(order);
+            }
+            else
+            {
+                return null;
+            }
+        }
+        //update the orderdetails based on the orderid
+        [HttpPost]
+        [CustomAuthorize(UserRoles.Admin)]
+        public async Task<IActionResult> EditOrder(int orderId, ListOfOrdersModel order)
+        {
+
+                // Serialize the customer object to JSON
+                var json = JsonConvert.SerializeObject(order);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                // Make the POST request to update customer details
+                HttpResponseMessage response = await _httpClient.PostAsync($"{_httpClient.BaseAddress}/Order/UpdateOrderDetails?orderId={orderId}", content);
+
+                // Check if the request was successful
+                if (response.IsSuccessStatusCode)
+                {             
+                    TempData["SavedChanges"] = "Profile Updated Successfully";
+                    return RedirectToAction("ListOfOrderDetails");
+                }
+                else
+                {
+                    // If there's an error, add model error and return the view
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine($"Response Status Code: {response.StatusCode}");
+                    Console.WriteLine($"Response Content: {responseContent}");
+                    ModelState.AddModelError(string.Empty, $"Server error: {responseContent}");
+                    return View(order);
+
+                }
+       
+        }
+        //Delete the orderdetails based on the orderid
+
+
 
 
     }

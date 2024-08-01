@@ -1,0 +1,61 @@
+﻿
+<style>
+    .blurred {
+        filter: blur(5px);
+        pointer-events: none;
+    }
+</style>
+
+<div class="loader" id="loader"></div>
+
+<form id="uploadForm" enctype="multipart/form-data">
+    <input type="file" name="file" id="file" />
+    <button type="button" onclick="uploadFile()">Upload</button>
+</form>
+@section Scripts {
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+    function uploadFile() {
+        var formData = new FormData();
+        formData.append('file', $('#file')[0].files[0]);
+
+        $.ajax({
+            url: '/Product/UploadExcel',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+                beforeSend: function () {
+                    simulateSlowProgress();
+                    $("#loader").show();
+                    $("#uploadForm").addClass("blurred");
+                },
+                success: function (response) {
+                    clearInterval(simulateProgress);
+                    $("#loader").hide();
+                    $("#uploadForm").removeClass("blurred");
+                    $("#uploadForm")[0].reset();
+                    alert('File uploaded successfully');
+                    
+                },
+                error: function (err) {
+                    clearInterval(simulateProgress);
+                    $("#loader").hide();
+                    $("#uploadForm").removeClass("blurred");
+                    alert('Error uploading file');
+                }
+        });
+    }
+
+        function simulateSlowProgress() {
+            var progressValue = 0;
+            simulateProgress = setInterval(function () {
+                if (progressValue < 99) {
+                    progressValue += 1;
+                } else {
+                    clearInterval(simulateProgress);
+                }
+            }, 70); // Adjust the interval as needed to control the speed
+        }
+</script>
+}

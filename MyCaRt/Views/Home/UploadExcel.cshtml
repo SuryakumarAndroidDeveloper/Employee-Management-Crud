@@ -1,0 +1,28 @@
+﻿<form id="uploadForm" enctype="multipart/form-data">
+    <input type="file" name="file" id="file" />
+    <button type="button" onclick="uploadFile()">Upload</button>
+</form>
+
+@section Scripts {
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+    function uploadFile() {
+        var formData = new FormData();
+        formData.append('file', $('#file')[0].files[0]);
+
+        $.ajax({
+            url: '/Product/UploadExcel',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                alert('File uploaded successfully');
+            },
+            error: function (err) {
+                alert('Error uploading file');
+            }
+        });
+    }
+</script>
+}

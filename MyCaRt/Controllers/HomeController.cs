@@ -79,6 +79,13 @@ namespace MyCaRt.Controllers
             return View(products);
         }
 
+        public IActionResult UploadExcel()
+        {
+            return View();
+        }
+
+
+
         public IActionResult Privacy()
         {
             return View();
