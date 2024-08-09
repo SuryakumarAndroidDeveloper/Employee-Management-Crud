@@ -70,9 +70,10 @@
                 @Html.DisplayFor(modelItem => item.DeliveryStatus)
             </td>
             <td>
-                    @Html.ActionLink("Update", "EditOrder", new { orderId = item.OrderId }) |
-                @Html.ActionLink("Details", "Details", new { /* id=item.PrimaryKey */ }) |
-                @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })
+                    @Html.ActionLink("Update Orders", "EditOrder", new { orderId = item.OrderId }) |
+                    @Html.ActionLink("Full Update", "EditFullOrder") 
+              @*   @Html.ActionLink("Details", "Details", new { /* id=item.PrimaryKey */ }) |
+                @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ }) *@
             </td>
         </tr>
 }

@@ -1,4 +1,5 @@
-﻿using DocumentFormat.OpenXml.Spreadsheet;
+﻿using DocumentFormat.OpenXml.Drawing.Charts;
+using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Mvc;
 using MyCaRt.Models;
 using Newtonsoft.Json;
@@ -60,47 +61,33 @@ namespace MyCaRt.Controllers
         }
         //buy again the product
         [HttpPost]
-        public async Task<IActionResult> BuyAgain(int Customer_Id, int PaymentId, int Product_Id, int Quantity, decimal TotalPrice)
+        public async Task<IActionResult> BuyAgainOrder([FromBody] BugAgainOrderModel orderData)
         {
-            var orderProduct = new OrderProduct
-            {
-                Product_Id = Product_Id,
-                Quantity = Quantity,
-                TotalPrice = TotalPrice
-            };
-
-            var orderRequest = new OrderProductModel
-            {
-                Customer_Id = Customer_Id,
-                PaymentId = PaymentId,
-                OrderProducts = new List<OrderProduct> { orderProduct }
-            };
-
             try
             {
-                if (orderRequest == null)
+                if (orderData == null)
                 {
                     return BadRequest("Invalid order data.");
                 }
 
-                var json = JsonConvert.SerializeObject(orderRequest);
+                var json = JsonConvert.SerializeObject(orderData);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                HttpResponseMessage response = await _httpClient.PostAsync($"{_httpClient.BaseAddress}/Order/PlaceOrder", content);
+                HttpResponseMessage response = await _httpClient.PostAsync($"{_httpClient.BaseAddress}/Order/BuyAgainOrder", content);
 
                 if (response.IsSuccessStatusCode)
                 {
-                    return RedirectToAction("MyOrders"); // Redirect to the orders page or another appropriate page
+                    return Ok("Order placed successfully.");
                 }
                 else
                 {
-                    TempData["AlertMessage"] = "Failed to place the order.";
+                    TempData["AlertBugAgainMessage"] = "Failed to Order this Product.";
                     return RedirectToAction("MyOrders");
                 }
             }
             catch (Exception ex)
             {
-                TempData["AlertMessage"] = "Failed to place the order.";
+                TempData["AlertBugAgainMessage"] = "Failed to place the order.";
                 return RedirectToAction("MyOrders");
             }
         }
@@ -150,6 +137,56 @@ namespace MyCaRt.Controllers
 
         }
 
+        //get the orderdetails based on the orderid
+        [HttpGet]
+        [CustomAuthorize(UserRoles.Admin)]
+        public async Task<IActionResult> EditFullOrder()
+        {
+            List<ListOfOrdersModel> orders = new List<ListOfOrdersModel>();
+
+            HttpResponseMessage response = await _httpClient.GetAsync($"{_httpClient.BaseAddress}/Order/GetAllOrders");
+            if (response.IsSuccessStatusCode)
+            {
+                string data = await response.Content.ReadAsStringAsync();
+                orders = JsonConvert.DeserializeObject<List<ListOfOrdersModel>>(data);            
+            }
+            else
+            {
+                return null;
+            }
+            return View(orders);
+        }
+
+
+        [HttpPost]
+        [CustomAuthorize(UserRoles.Admin)]
+        public async Task<IActionResult> UpdateFullOrders(List<ListOfOrdersModel> orders)
+        {
+            if (orders == null || !orders.Any())
+            {
+                return BadRequest("No orders to update.");
+            }
+            var json = JsonConvert.SerializeObject(orders);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            // Make the POST request to update customer details
+            HttpResponseMessage response = await _httpClient.PostAsync($"{_httpClient.BaseAddress}/Order/UpdateFullOrderDetails", content);
+
+            // Check if the request was successful
+            if (response.IsSuccessStatusCode)
+            {
+                TempData["SavedChangesFullDetails"] = "Updated Successfully";
+                return RedirectToAction("EditFullOrder");
+            }
+            else
+            {
+                TempData["ErrorFullDetails"] = "Failed to update orders.";
+                return View("Error");
+            }
+        }
+
+
+
         //edit the orderdetails cshtml page
         [CustomAuthorize(UserRoles.Admin, UserRoles.User)]
         public IActionResult EditOrder()
@@ -194,7 +231,7 @@ namespace MyCaRt.Controllers
                 // Check if the request was successful
                 if (response.IsSuccessStatusCode)
                 {             
-                    TempData["SavedChanges"] = "Profile Updated Successfully";
+                    TempData["SavedChanges"] = "Order Updated Successfully";
                     return RedirectToAction("ListOfOrderDetails");
                 }
                 else

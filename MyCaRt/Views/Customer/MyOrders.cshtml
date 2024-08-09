@@ -66,26 +66,23 @@ else
                         }
                     </tbody>
                     <div>
-                        @foreach (var item in orderGroup)
+                        @{
+                            var firstItem = orderGroup.First();
+                        }
+                        @if ((firstItem.DeliveryStatus == "Canceled" && firstItem.DeliveryDate == null) || firstItem.DeliveryStatus == "Delivered")
                         {
-                            if ((item.DeliveryStatus == "Canceled" && item.DeliveryDate == null) || item.DeliveryStatus == "Delivered")
-                            {
-                              
-                                    <button type="submit" class="btn btn-primary">Buy Again</button>
-                                
-                            }
-                            else
-                            {
-                                <form class="action-links-form" asp-controller="Order" asp-action="CancelOrder" method="post" style="display: inline-block; ">
-                                    <input type="hidden" name="orderId" value="@firstOrderItem.OrderId" />
-                                    <button type="submit" class="action-links delete" onclick="return confirm('Are you sure you want to Cancel this Order?')"
-                                    stye="background-color:red;color:black">
-                                        Cancel Order
-                                    </button>
-
-                                    <button type="submit" class="btn btn-primary" style="display:inline;">Buy Again</button>
-                                </form>
-                            }
+                            <button type="submit" class="btn btn-primary buy-again-btn" data-orderid="@firstItem.OrderId" data-totalprice="@firstItem.TotalPrice">Buy Again</button>
+                        }
+                        else
+                        {
+                            <form class="action-links-form" asp-controller="Order" asp-action="CancelOrder" method="post" style="display: inline-block;">
+                                <input type="hidden" name="orderId" value="@firstItem.OrderId" />
+                                <button type="submit" class="action-links delete" onclick="return confirm('Are you sure you want to Cancel this Order?')"
+                                        style="background-color:red;color:black">
+                                    Cancel Order
+                                </button>
+                            </form>
+                            <button type="submit" style="display:inline;" class="btn btn-primary buy-again-btn" data-orderid="@firstItem.OrderId" data-totalprice="@firstItem.TotalPrice">Buy Again</button>
                         }
 
                         
@@ -287,19 +284,214 @@ else
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
     <script>
-       $(document).ready(function () {
+        $(document).ready(function () {
+            // Handle the "Buy Again" button click
+            $('.buy-again-btn').on('click', function () {
+                //console.log('button is clicked');
+                var orderId = $(this).data('orderid');
+                //console.log(orderId);
+                var totalPrice = $(this).data('totalprice');
+                $(this).after('<button id="pay-btn-' + orderId + '" class="btn btn-sm btn-outline-secondary add-to-cart pay-btn" data-orderid="' + orderId + '" data-totalprice="' + totalPrice + '">Pay ' + totalPrice + '</button>');
+                $('#pay-btn-' + orderId).on('click', function () {
+                    $('#payModal').modal('show');
+                });
+                $(this).hide();
+            });
+
+            // Handle the payment form submission
+            $('#paymentForm').on('submit', function (e) {
+                e.preventDefault();
+                var formData = {
+                    FullName: $('#FullName').val(),
+                    Email: $('#Email').val(),
+                    Address: $('#Address').val(),
+                    City: $('#City').val(),
+                    State: $('#State').val(),
+                    ZipCode: $('#ZipCode').val(),
+                    CardName: $('#CardName').val(),
+                    CardNumber: $('#CardNumber').val(),
+                    ExpMonth: $('#ExpMonth').val(),
+                    ExpYear: $('#ExpYear').val(),
+                    CVV: $('#CVV').val()
+                };
+                $.ajax({
+                    type: 'POST',
+                    url: '@Url.Action("StorePayment", "Payment")',
+                    data: JSON.stringify(formData),
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (response) {
+                        if (response.paymentId) {
+                            alert('Payment placed successfully!');
+//console.log(response.paymentId);
+                            $('#payModal').modal('hide');
+
+                            // Change the PAY button to ORDER button after the payment process is complete
+                            $('.pay-btn').hide();
+                            var orderId = $('.pay-btn').data('orderid');
+                            $('<button id="order-btn" class="btn btn-sm btn-outline-secondary add-to-cart order-btn data-orderid="' + orderId + '"" style="background-color: green; color: white">Order</button>').insertAfter('.pay-btn');
+                            console.log(orderId);
+
+                            // Attach a new click event for the ORDER button
+                            $('#order-btn').on('click', function () {
+                               // var orderId = $(this).data('orderid');
+                                //var orderId = $('.order-btn').data('orderid');
+                                console.log(orderId);
+                                placeOrder(response.paymentId, orderId); // Call the placeOrder function with the paymentId
+                            });
+                        } else {
+                            alert('Payment placed but no paymentId returned.');
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        alert('Failed to payment: ' + xhr.responseText);
+                    }
+                });
+            });
+
+            // Handle the confirm pay button click
+            $('#confirm-pay-btn').on('click', function (event) {
+                event.preventDefault(); // Prevent form submission
+
+                // Perform field validation
+                var isValid = validatePaymentForm();
+
+                if (isValid) {
+                    // Trigger the submission of the payment form
+                    $('#paymentForm').submit();
+                } else {
+                    // Show error messages for invalid fields
+                    showValidationErrors();
+                }
+            });
+
+            // Function to validate the payment form fields
+            function validatePaymentForm() {
+                var isValid = true;
+
+                // Clear any previous error styles
+                $('#payModal input, #payModal select').removeClass('is-invalid');
+
+                // Validate billing address fields
+                $('#payModal input[type="text"]').each(function () {
+                    if ($(this).val().trim() === '') {
+                        isValid = false;
+                        $(this).addClass('is-invalid');
+                    }
+                });
+
+                // Validate credit card fields
+                $('#payModal input[type="text"], #payModal select').each(function () {
+                    if ($(this).val() === '') {
+                        isValid = false;
+                        $(this).addClass('is-invalid');
+                    }
+                });
+
+                // Validate Cardnumber field
+                var cardnumber = $('#CardNumber').val();
+                if (cardnumber === '' || cardnumber.length !== 16) {
+                    isValid = false;
+                    $('#CardNumber').addClass('is-invalid');
+                }
+
+                // Validate CVV field
+                var cvv = $('#CVV').val();
+                if (cvv === '' || isNaN(cvv) || cvv.length !== 3) {
+                    isValid = false;
+                    $('#CVV').addClass('is-invalid');
+                }
+
+                // Validate ExpYear field
+                var expYear = $('#ExpYear').val();
+                if (expYear === '' || isNaN(expYear)) {
+                    isValid = false;
+                    $('#ExpYear').addClass('is-invalid');
+                }
+
+                // Validate ExpMonth field
+                var expMonth = $('#ExpMonth').val();
+                if (expMonth === '') {
+                    isValid = false;
+                    $('#ExpMonth').addClass('is-invalid');
+                }
+
+                return isValid;
+            }
+
+            // Function to show validation error messages
+            function showValidationErrors() {
+                // Clear any previous error messages
+                $('.invalid-feedback').remove();
+
+                // Billing address error messages
+                $('#payModal input[type="text"]').each(function () {
+                    if ($(this).val().trim() === '') {
+                        $(this).after('<div class="invalid-feedback">This field is required.</div>');
+                    }
+                });
+
+                // Credit card error messages
+                $('#payModal select').each(function () {
+                    if ($(this).val() === '') {
+                        $(this).after('<div class="invalid-feedback">This field is required.</div>');
+                    }
+                });
+
+                // Cardnumber error message
+                var cardnumber = $('#CardNumber').val();
+                if (cardnumber === '' || cardnumber.length !== 16) {
+                    $('#CardNumber').after('<div class="invalid-feedback">Please enter a 16 digit Card number.</div>');
+                }
+
+                // CVV error message
+                var cvv = $('#CVV').val();
+                if (cvv === '' || isNaN(cvv) || cvv.length !== 3) {
+                    $('#CVV').after('<div class="invalid-feedback">Please enter a valid CVV number.</div>');
+                }
+
+                // ExpYear error message
+                var expYear = $('#ExpYear').val();
+                if (expYear === '' || isNaN(expYear)) {
+                    $('#ExpYear').after('<div class="invalid-feedback">Please enter a valid ExpYear.</div>');
+                }
+
+                // ExpMonth error message
+                var expMonth = $('#ExpMonth').val();
+                if (expMonth === '') {
+                    $('#ExpMonth').after('<div class="invalid-feedback">Please select an ExpMonth.</div>');
+                }
+            }
 
 
-
-
-
-
-
-
-
-
-
+            // Function to place order
+            function placeOrder(paymentId, orderId) {
+                var orderData = {
+                    paymentId: paymentId,
+                    orderId: orderId
+                };
+                console.log(orderData);
+                $.ajax({
+                    type: 'POST',
+                    url: '@Url.Action("BuyAgainOrder", "Order")',
+                    data: JSON.stringify(orderData),
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (response) {
+                        console.log(response);
+                        if (response) {
+                            alert('Order placed successfully!');
+                            window.location.reload();
+                           
+                        } else {
+                            alert('Failed to place order.');
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        alert('Error in placing order: ' + xhr.responseText);
+                    }
+                });
+            }
 
         });
+
         </script>
     }

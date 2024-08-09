@@ -1,0 +1,100 @@
+﻿@model List<MyCaRt.Models.ListOfOrdersModel>
+
+@{
+    ViewData["Title"] = "Edit Orders";
+}
+
+@if (TempData["SavedChangesFullDetails"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["SavedChangesFullDetails"]
+    </div>
+}
+
+
+@if (TempData["ErrorFullDetails"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["ErrorFullDetails"]
+    </div>
+}
+
+<h1>Edit Orders</h1>
+
+<form asp-action="UpdateFullOrders" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="container">
+        <div class="row">
+    @for (int i = 0; i < Model.Count; i++)
+    {
+        <div class="col-md-4">
+                    <div class="card mb-4 shadow-sm">
+                        <div class="card-body">
+        <div class="form-group">
+            <label asp-for="@Model[i].OrderId" class="control-label"></label>
+            <input asp-for="@Model[i].OrderId" name="orders[@i].OrderId" class="form-control" hidden />
+           <input asp-for="@Model[i].OrderId" class="form-control" disabled />
+            <span asp-validation-for="@Model[i].OrderId" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="@Model[i].ProductId" class="control-label"></label>
+            <input asp-for="@Model[i].ProductId" class="form-control" readonly />
+            <input type="hidden" asp-for="@Model[i].ProductId" />
+            <span asp-validation-for="@Model[i].ProductId" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="@Model[i].Quantity" class="control-label"></label>
+            <input asp-for="@Model[i].Quantity" class="form-control" name="orders[@i].Quantity" />
+            <span asp-validation-for="@Model[i].Quantity" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="@Model[i].TotalPrice" class="control-label"></label>
+            <input asp-for="@Model[i].TotalPrice" class="form-control" readonly />
+            <input type="hidden" asp-for="@Model[i].TotalPrice" />
+            <span asp-validation-for="@Model[i].TotalPrice" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="@Model[i].OrderDate" class="control-label"></label>
+            <input asp-for="@Model[i].OrderDate" class="form-control" readonly />
+            <input type="hidden" asp-for="@Model[i].OrderDate" />
+            <span asp-validation-for="@Model[i].OrderDate" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="@Model[i].IsPaid" class="control-label"></label>
+            <input asp-for="@Model[i].IsPaid" class="form-control" readonly />
+            <input type="hidden" asp-for="@Model[i].IsPaid" />
+            <span asp-validation-for="@Model[i].IsPaid" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="@Model[i].DeliveryDate" class="control-label"></label>
+            <input asp-for="@Model[i].DeliveryDate" class="form-control" name="orders[@i].DeliveryDate" />
+            <span asp-validation-for="@Model[i].DeliveryDate" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="@Model[i].DeliveryStatus" class="control-label"></label>
+            <select asp-for="@Model[i].DeliveryStatus" class="form-control" name="orders[@i].DeliveryStatus">
+                <option value="Pending">Pending</option>
+                <option value="Processing">Processing</option>
+                <option value="Delivered">Delivered</option>
+                <option value="Canceled">Canceled</option>
+            </select>
+            <span asp-validation-for="@Model[i].DeliveryStatus" class="text-danger"></span>
+        </div>
+        </div>
+         </div>
+            </div>
+               
+    }
+        </div>
+    <div class="form-group">
+        <input type="submit" value="Submit Changes" class="btn btn-primary" />
+    </div>
+</form>
+
+
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
